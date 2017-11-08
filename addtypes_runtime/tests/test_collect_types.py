@@ -1,4 +1,4 @@
-"""Tests for dropbox.client.debug_tooling.collect_types"""
+"""Tests for collect_types"""
 from __future__ import (
     absolute_import,
     division,
@@ -25,8 +25,7 @@ from typing import (
     Union,
 )
 
-from dropbox.client.debug_tooling import collect_types
-from test.unit.markers import owner
+from addtypes_runtime import collect_types
 
 # A bunch of random functions and classes to test out type collection
 # Disable a whole bunch of lint warnings for simplicity
@@ -155,7 +154,6 @@ def problematic_dup(uni, bol):
     return {u"foo": [], u"bart": u'ads', u"bax": 23}, b'str'
 
 
-@owner('dna-team', 'svorobev')
 class TestCollectTypes(unittest.TestCase):
 
     def setUp(self):
@@ -284,10 +282,10 @@ class TestCollectTypes(unittest.TestCase):
         # print_int,
         self.assert_type_comments(
             'WorkerClass.__init__',
-            ['(int, test_collect_types.FooObject) -> None'])
+            ['(int, addtypes_runtime.tests.test_collect_types.FooObject) -> None'])
         self.assert_type_comments(
             'do_work_clsmthd',
-            ['(int, test_collect_types.FooNamedTuple) -> EOFError'])
+            ['(int, addtypes_runtime.tests.test_collect_types.FooNamedTuple) -> EOFError'])
         # TODO: that could be better
         self.assert_type_comments('takes_different_lists', ['(List[Union[int, str]]) -> None'])
 
@@ -475,8 +473,8 @@ class TestCollectTypes(unittest.TestCase):
             identity_qualified(collect_types.TentativeType())
         self.assert_type_comments(
             'identity_qualified',
-            ['(dropbox.client.debug_tooling.collect_types.TentativeType) -> '
-             'dropbox.client.debug_tooling.collect_types.TentativeType'])
+            ['(addtypes_runtime.collect_types.TentativeType) -> '
+             'addtypes_runtime.collect_types.TentativeType'])
 
     def test_recursive_function(self):
         # type: () -> None
@@ -494,9 +492,9 @@ class TestCollectTypes(unittest.TestCase):
         self.assert_type_comments(
             'recurse',
             ['(Tuple[]) -> float',
-             '(Tuple[bool]) -> dropbox.client.debug_tooling.collect_types.UnknownType',
-             '(Tuple[str, bool]) -> dropbox.client.debug_tooling.collect_types.UnknownType',
-             '(Tuple[int, str, bool]) -> dropbox.client.debug_tooling.collect_types.UnknownType'])
+             '(Tuple[bool]) -> addtypes_runtime.collect_types.UnknownType',
+             '(Tuple[str, bool]) -> addtypes_runtime.collect_types.UnknownType',
+             '(Tuple[int, str, bool]) -> addtypes_runtime.collect_types.UnknownType'])
 
     def test_recursive_function_2(self):
         # type: () -> None
@@ -518,7 +516,7 @@ class TestCollectTypes(unittest.TestCase):
             'recurse',
             ['(str) -> str',
              '(float) -> float',
-             '(int) -> dropbox.client.debug_tooling.collect_types.UnknownType'])
+             '(int) -> addtypes_runtime.collect_types.UnknownType'])
 
     def test_ignoring_c_calls(self):
         # type: () -> None
