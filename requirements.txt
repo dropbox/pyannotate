@@ -1,3 +1,5 @@
-six
 mypy_extensions
+pytest
+setuptools
+six
 typing
