@@ -3,8 +3,8 @@ import unittest
 
 from typing import List, Optional, Tuple
 
-from dropbox.annotations.parse import parse_json, parse_type_comment, ParseError, tokenize
-from dropbox.annotations.types import (
+from addtypes_tools.annotations.parse import parse_json, parse_type_comment, ParseError, tokenize
+from addtypes_tools.annotations.types import (
     AbstractType,
     AnyType,
     ARG_POS,
@@ -115,7 +115,7 @@ class TestParseTypeComment(unittest.TestCase):
 
     def test_any_and_unknown(self):
         # type: () -> None
-        self.assert_type_comment('(Any) -> dropbox.client.debug_tooling.collect_types.UnknownType',
+        self.assert_type_comment('(Any) -> addtypes_runtime.collect_types.UnknownType',
                                  ([any_arg()], AnyType()))
 
     def test_tuple(self):

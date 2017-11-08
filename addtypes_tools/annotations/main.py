@@ -5,9 +5,9 @@ import json
 from typing import List
 from mypy_extensions import TypedDict
 
-from dropbox.annotations.types import ARG_STAR, ARG_STARSTAR
-from dropbox.annotations.infer import infer_annotation
-from dropbox.annotations.parse import parse_json
+from addtypes_tools.annotations.types import ARG_STAR, ARG_STARSTAR
+from addtypes_tools.annotations.infer import infer_annotation
+from addtypes_tools.annotations.parse import parse_json
 
 
 # Schema of a function signature in the output
@@ -28,7 +28,7 @@ def generate_annotations_json(source_path, target_path):
 
     Data formats:
 
-    * The source JSON is a list of dropbox.annotations.parse.RawEntry items.
+    * The source JSON is a list of addtypes_tools.annotations.parse.RawEntry items.
     * The output JSON is a list of FunctionData items.
     """
     items = parse_json(source_path)

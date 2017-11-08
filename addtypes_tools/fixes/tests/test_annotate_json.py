@@ -6,7 +6,7 @@ import tempfile
 
 from lib2to3.tests.test_fixers import FixerTestCase
 
-from dropbox.lib2to3fixers.fixes.fix_annotate_json import FixAnnotateJson
+from addtypes_tools.fixes.fix_annotate_json import FixAnnotateJson
 
 
 class TestFixAnnotateJson(FixerTestCase):
@@ -14,9 +14,9 @@ class TestFixAnnotateJson(FixerTestCase):
     def setUp(self):
         super(TestFixAnnotateJson, self).setUp(
             fix_list=["annotate_json"],
-            fixer_pkg="dropbox.lib2to3fixers",
+            fixer_pkg="addtypes_tools",
         )
-        self.tf = tempfile.NamedTemporaryFile()
+        self.tf = tempfile.NamedTemporaryFile(mode='w+')
         FixAnnotateJson.stub_json_file = self.tf.name
         FixAnnotateJson.stub_json = None
 

@@ -6,8 +6,8 @@ import tempfile
 
 from lib2to3.main import StdoutRefactoringTool
 
-from dropbox.annotations.main import generate_annotations_json
-from dropbox.lib2to3fixers.fixes.fix_annotate_json import FixAnnotateJson
+from addtypes_tools.annotations.main import generate_annotations_json
+from addtypes_tools.fixes.fix_annotate_json import FixAnnotateJson
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--type-info', default='type_info.json', metavar="FILE",
@@ -46,7 +46,7 @@ def main():
 
     # Run pass 3 reading from a temporary file.
     FixAnnotateJson.stub_json_file = tf.name
-    fixers = ['dropbox.lib2to3fixers.fixes.fix_annotate_json']
+    fixers = ['addtypes_tools.fixes.fix_annotate_json']
     flags = {'print_function': args.print_function}
     rt = StdoutRefactoringTool(
         fixers=fixers,

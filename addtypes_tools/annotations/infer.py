@@ -5,8 +5,8 @@ The main entry point is 'infer_annotation'.
 
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from dropbox.annotations.parse import parse_type_comment
-from dropbox.annotations.types import (
+from addtypes_tools.annotations.parse import parse_type_comment
+from addtypes_tools.annotations.types import (
     AbstractType,
     AnyType,
     ARG_POS,

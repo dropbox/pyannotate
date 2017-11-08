@@ -1,6 +1,6 @@
 import unittest
 
-from dropbox.annotations.types import AnyType, ClassType, TupleType, UnionType
+from addtypes_tools.annotations.types import AnyType, ClassType, TupleType, UnionType
 
 
 class TestTypes(unittest.TestCase):

@@ -2,8 +2,7 @@
 
 Parse JSON data and also parse type comment strings into type objects.
 
-The collect_types tool is in the desktop-client repository
-(dropbox/client/debug_tooling/collect_types.py).
+The collect_types tool is in addtypes_runtime/collect_types.py.
 """
 
 import json
@@ -14,7 +13,7 @@ from typing import Any, List, Mapping, Set, Text, Tuple
 
 from mypy_extensions import NoReturn, TypedDict
 
-from dropbox.annotations.types import (
+from addtypes_tools.annotations.types import (
     AbstractType,
     AnyType,
     ARG_POS,
@@ -37,7 +36,7 @@ TYPE_FIXUPS = {
     'dictionary-keyiterator': 'Iterator',
     'dictionary-valueiterator': 'Iterator',
     'dictionary-itemiterator': 'Iterator',
-    'dropbox.client.debug_tooling.collect_types.UnknownType': 'Any',
+    'addtypes_runtime.collect_types.UnknownType': 'Any',
     'function': 'Callable',
     'functools.partial': 'Callable',
     'long': 'int',

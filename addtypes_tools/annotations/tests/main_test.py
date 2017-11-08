@@ -5,8 +5,8 @@ import unittest
 
 from typing import Iterator
 
-from dropbox.annotations.infer import InferError
-from dropbox.annotations.main import generate_annotations_json
+from addtypes_tools.annotations.infer import InferError
+from addtypes_tools.annotations.main import generate_annotations_json
 
 
 class TestMain(unittest.TestCase):
