@@ -1,0 +1,59 @@
+"""Main entry point to mypy annotation inference utility."""
+
+import json
+
+from typing import List
+from mypy_extensions import TypedDict
+
+from dropbox.annotations.types import ARG_STAR, ARG_STARSTAR
+from dropbox.annotations.infer import infer_annotation
+from dropbox.annotations.parse import parse_json
+
+
+# Schema of a function signature in the output
+Signature = TypedDict('Signature', {'arg_types': List[str],
+                                    'return_type': str})
+
+# Schema of a function in the output
+FunctionData = TypedDict('FunctionData', {'path': str,
+                                          'line': int,
+                                          'func_name': str,
+                                          'signature': Signature,
+                                          'samples': int})
+
+
+def generate_annotations_json(source_path, target_path):
+    # type: (str, str) -> None
+    """Produce annotation data JSON file from a JSON file with runtime-collected types.
+
+    Data formats:
+
+    * The source JSON is a list of dropbox.annotations.parse.RawEntry items.
+    * The output JSON is a list of FunctionData items.
+    """
+    items = parse_json(source_path)
+    results = []
+    for item in items:
+        arg_types, return_type = infer_annotation(item.type_comments)
+        arg_strs = []
+        for arg, kind in arg_types:
+            arg_str = str(arg)
+            if kind == ARG_STAR:
+                arg_str = '*%s' % arg_str
+            elif kind == ARG_STARSTAR:
+                arg_str = '**%s' % arg_str
+            arg_strs.append(arg_str)
+        signature = {
+            'arg_types': arg_strs,
+            'return_type': str(return_type),
+        }  # type: Signature
+        data = {
+            'path': item.path,
+            'line': item.line,
+            'func_name': item.func_name,
+            'signature': signature,
+            'samples': item.samples
+        }  # type: FunctionData
+        results.append(data)
+    with open(target_path, 'w') as f:
+        json.dump(results, f, sort_keys=True, indent=4)
