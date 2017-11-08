@@ -1,10 +1,5 @@
 """Fixer that inserts mypy annotations from json file into code.
 
-Usage:
-TYPE_COLLECTION_JSON=<path-to-json> python dropbox/lib2to3fixers/main.py -f annotate_json <path>
-
-TODO(guido): I wish we could add a more custom main function.
-
 This fixer consumes json from TYPE_COLLECTION_JSON env variable in the following format:
 
 [
