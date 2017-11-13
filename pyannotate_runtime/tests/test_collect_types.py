@@ -163,6 +163,10 @@ class TestCollectTypes(unittest.TestCase):
         self.stats = []  # type: List[collect_types.FunctionData]
         collect_types.init_types_collection()
 
+    def tearDown(self):
+        # type: () -> None
+        collect_types.stop_types_collection()
+
     # following type annotations are intentionally use Any,
     # because we are testing runtime type collection
 

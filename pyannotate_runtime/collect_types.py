@@ -793,6 +793,14 @@ def init_types_collection():
     Setup profiler hooks to enable type collection.
     Call this one time from the main thread.
     """
-    # we don't want to collect types in .vagrant folder
     sys.setprofile(_trace_dispatch)
     threading.setprofile(_trace_dispatch)
+
+
+def stop_types_collection():
+    # type: () -> None
+    """
+    Remove profiler hooks.
+    """
+    sys.setprofile(None)
+    threading.setprofile(None)
