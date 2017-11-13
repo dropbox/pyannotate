@@ -1,5 +1,5 @@
-AddTypes: Auto-generate PEP-484 annotations
-===========================================
+PyAnnotate: Auto-generate PEP-484 annotations
+=============================================
 
 Insert annotations into your source code based on call arguments and
 return types observed at runtime.
@@ -19,19 +19,19 @@ Installation etc.
 This should work for Python 2.7 as well as for Python 3.6 and higher.
 
 ```
-pip install addtypes
+pip install pyannotate
 ```
 
 This installs several items:
 
-- A runtime module, addtypes_runtime/collect_types.py, which collects
+- A runtime module, pyannotate_runtime/collect_types.py, which collects
   and dumps types observed at runtime using a profiling hook.
 
-- A library package, addtypes_tools, containing code that can read the
+- A library package, pyannotate_tools, containing code that can read the
   data dumped by the runtime module and insert annotations into your
   source code.
 
-- An entry point, addtypes, which runs the library package on your files.
+- An entry point, pyannotate, which runs the library package on your files.
 
 For dependencies, see setup.py and requirements.txt.
 

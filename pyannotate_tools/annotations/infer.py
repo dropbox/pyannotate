@@ -5,8 +5,8 @@ The main entry point is 'infer_annotation'.
 
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from addtypes_tools.annotations.parse import parse_type_comment
-from addtypes_tools.annotations.types import (
+from pyannotate_tools.annotations.parse import parse_type_comment
+from pyannotate_tools.annotations.types import (
     AbstractType,
     AnyType,
     ARG_POS,

@@ -4,7 +4,7 @@
 from lib2to3.tests.test_fixers import FixerTestCase
 
 # deadcode: fix_annotate is used as part of the fixer_pkg for this test
-from addtypes_tools.fixes import fix_annotate
+from pyannotate_tools.fixes import fix_annotate
 
 
 class TestFixAnnotate(FixerTestCase):
@@ -12,7 +12,7 @@ class TestFixAnnotate(FixerTestCase):
     def setUp(self):
         super(TestFixAnnotate, self).setUp(
             fix_list=["annotate"],
-            fixer_pkg="addtypes_tools",
+            fixer_pkg="pyannotate_tools",
         )
 
     def test_no_arg(self):

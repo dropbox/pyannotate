@@ -25,7 +25,7 @@ from typing import (
     Union,
 )
 
-from addtypes_runtime import collect_types
+from pyannotate_runtime import collect_types
 
 # A bunch of random functions and classes to test out type collection
 # Disable a whole bunch of lint warnings for simplicity
@@ -282,10 +282,10 @@ class TestCollectTypes(unittest.TestCase):
         # print_int,
         self.assert_type_comments(
             'WorkerClass.__init__',
-            ['(int, addtypes_runtime.tests.test_collect_types.FooObject) -> None'])
+            ['(int, pyannotate_runtime.tests.test_collect_types.FooObject) -> None'])
         self.assert_type_comments(
             'do_work_clsmthd',
-            ['(int, addtypes_runtime.tests.test_collect_types.FooNamedTuple) -> EOFError'])
+            ['(int, pyannotate_runtime.tests.test_collect_types.FooNamedTuple) -> EOFError'])
         # TODO: that could be better
         self.assert_type_comments('takes_different_lists', ['(List[Union[int, str]]) -> None'])
 
@@ -473,8 +473,8 @@ class TestCollectTypes(unittest.TestCase):
             identity_qualified(collect_types.TentativeType())
         self.assert_type_comments(
             'identity_qualified',
-            ['(addtypes_runtime.collect_types.TentativeType) -> '
-             'addtypes_runtime.collect_types.TentativeType'])
+            ['(pyannotate_runtime.collect_types.TentativeType) -> '
+             'pyannotate_runtime.collect_types.TentativeType'])
 
     def test_recursive_function(self):
         # type: () -> None
@@ -492,9 +492,9 @@ class TestCollectTypes(unittest.TestCase):
         self.assert_type_comments(
             'recurse',
             ['(Tuple[]) -> float',
-             '(Tuple[bool]) -> addtypes_runtime.collect_types.UnknownType',
-             '(Tuple[str, bool]) -> addtypes_runtime.collect_types.UnknownType',
-             '(Tuple[int, str, bool]) -> addtypes_runtime.collect_types.UnknownType'])
+             '(Tuple[bool]) -> pyannotate_runtime.collect_types.UnknownType',
+             '(Tuple[str, bool]) -> pyannotate_runtime.collect_types.UnknownType',
+             '(Tuple[int, str, bool]) -> pyannotate_runtime.collect_types.UnknownType'])
 
     def test_recursive_function_2(self):
         # type: () -> None
@@ -516,7 +516,7 @@ class TestCollectTypes(unittest.TestCase):
             'recurse',
             ['(str) -> str',
              '(float) -> float',
-             '(int) -> addtypes_runtime.collect_types.UnknownType'])
+             '(int) -> pyannotate_runtime.collect_types.UnknownType'])
 
     def test_ignoring_c_calls(self):
         # type: () -> None

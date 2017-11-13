@@ -2,13 +2,13 @@ import unittest
 
 from typing import List, Tuple
 
-from addtypes_tools.annotations.infer import (
+from pyannotate_tools.annotations.infer import (
     flatten_types,
     infer_annotation,
     merge_items,
     remove_redundant_items,
 )
-from addtypes_tools.annotations.types import (
+from pyannotate_tools.annotations.types import (
     AbstractType,
     AnyType,
     ARG_POS,

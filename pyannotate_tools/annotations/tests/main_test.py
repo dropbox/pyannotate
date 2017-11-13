@@ -5,8 +5,8 @@ import unittest
 
 from typing import Iterator
 
-from addtypes_tools.annotations.infer import InferError
-from addtypes_tools.annotations.main import generate_annotations_json
+from pyannotate_tools.annotations.infer import InferError
+from pyannotate_tools.annotations.main import generate_annotations_json
 
 
 class TestMain(unittest.TestCase):

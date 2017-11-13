@@ -2,15 +2,17 @@
 
 from setuptools import setup
 
-setup(name='addtypes',
+setup(name='pyannotate',
       version='1.0.0',
-      description="AddTypes: Auto-generate PEP-484 annotations",
+      description="PyAnnotate: Auto-generate PEP-484 annotations",
       author='Dropbox',
       author_email='guido@dropbox.com',
+      url='https://github.com/dropbox/pyannotate',
       license='Apache 2.0',
       platforms=['POSIX'],
-      packages=['addtypes_runtime', 'addtypes_tools', 'addtypes_tools.annotations', 'addtypes_tools.fixes'],
-      entry_points={'console_scripts': ['addtypes=addtypes_tools.annotations.__main__:main']},
+      packages=['pyannotate_runtime', 'pyannotate_tools',
+                'pyannotate_tools.annotations', 'pyannotate_tools.fixes'],
+      entry_points={'console_scripts': ['pyannotate=pyannotate_tools.annotations.__main__:main']},
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Environment :: Console',
