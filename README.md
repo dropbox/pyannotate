@@ -9,6 +9,8 @@ For license and copyright see the end of this file.
 How to use
 ==========
 
+See also the example directory.
+
 Phase 1: Collecting types at runtime
 ------------------------------------
 
