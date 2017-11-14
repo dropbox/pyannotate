@@ -1,4 +1,4 @@
 /.cache
-/addtypes.egg-info
+/*.egg-info
 /build
 /dist
