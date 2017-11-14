@@ -94,6 +94,16 @@ We'd love your help with some of these issues:
 - Python 3 code generation.
 - Refactor the tool modules (currently its legacy architecture shines through).
 
+Acknowledgments
+---------------
+
+The following people contributed significantly to this tool:
+
+- Tony Grue
+- Sergei Vorobev
+- Jukka Lehtosalo
+- Guido van Rossum
+
 Licence etc.
 ------------
 
