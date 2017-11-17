@@ -646,8 +646,10 @@ call_pending = set()  # type: Set[int]
 @contextmanager
 def collect():
     resume()
-    yield
-    pause()
+    try:
+        yield
+    finally:
+        pause()
 
 
 def pause():
