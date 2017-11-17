@@ -605,7 +605,7 @@ _consumer_thread = Thread(target=type_consumer)
 _consumer_thread.daemon = True
 _consumer_thread.start()
 
-stopped = True
+running = False
 
 TOP_DIR = os.getcwd()
 TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
@@ -647,8 +647,8 @@ def pause():
     """
     Pause the type collection
     """
-    global stopped  # pylint: disable=global-statement
-    stopped = True
+    global running  # pylint: disable=global-statement
+    running = False
     _task_queue.join()
 
 
@@ -657,8 +657,8 @@ def resume():
     """
     Resume the type collection
     """
-    global stopped  # pylint: disable=global-statement
-    stopped = False
+    global running  # pylint: disable=global-statement
+    running = True
     sampling_counters.clear()
 
 
@@ -671,7 +671,7 @@ def _trace_dispatch(frame, event, arg):
     Arguments are described in https://docs.python.org/2/library/sys.html#sys.settrace
     """
     # Bail if we're not tracing.
-    if stopped:
+    if not running:
         return
 
     # Get counter for this code object.  Bail if we don't care about this function.
