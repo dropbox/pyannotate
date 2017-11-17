@@ -26,6 +26,9 @@ and the observed types will be written (in JSON form) to the filename
 you pass to `dump_stats()`.  You can have multiple pause/resume pairs
 per dump call.
 
+If you'd like to automatically collect types when you run `pytest`,
+see `example/example_conftest.py` and `example/README.md`.
+
 Phase 2: Inserting types into your source code
 ----------------------------------------------
 
