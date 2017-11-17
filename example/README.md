@@ -69,8 +69,9 @@ gcd.py
 Alternative, using pytest
 -------------------------
 
-For pytest users, the conftest.py file provided automatically
-configures pytest to collect types when running tests.  The
-test_gcd.py file contains a simple test to demonstrate this.  Simply
-run pytest and it will generate a type_info.json file like the one
+For pytest users, the example_conftest.py file shows how to
+automatically configures pytest to collect types when running tests.
+The test_gcd.py file contains a simple test to demonstrate this.  Copy
+the contents of example_conftest.py to your conftest.py file and run
+pytest; it will then generate a type_info.json file like the one
 above.
