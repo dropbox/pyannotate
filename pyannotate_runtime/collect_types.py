@@ -47,6 +47,7 @@ from typing import (
     TypeVar,
     Union,
 )
+from contextlib import contextmanager
 
 # pylint: disable=invalid-name
 
@@ -640,6 +641,13 @@ LAST_SAMPLE = max(sampling_sequence)
 sampling_counters = {}  # type: Dict[int, Optional[int]]
 # IDs of code objects for which the previous event was a call (awaiting return).
 call_pending = set()  # type: Set[int]
+
+
+@contextmanager
+def collect():
+    resume()
+    yield
+    pause()
 
 
 def pause():
