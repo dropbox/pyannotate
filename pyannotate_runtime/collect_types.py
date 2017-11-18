@@ -715,11 +715,20 @@ def _trace_dispatch(frame, event, arg):
         # Ignore other events, such as c_call and c_return.
         return
 
-    # track all calls under client and ignore all calls under client/.vagrant
+    # Track calls under current directory only.
+    # TODO: Make this configurable.
     filename = code.co_filename
-    if filename.startswith(TOP_DIR) and not filename.startswith(TOP_DIR_DOT):
-        filename = filename[TOP_DIR_LEN + 1:]  # +1 is for the last slash
-
+    if filename.startswith(TOP_DIR):
+        if filename.startswith(TOP_DIR_DOT):
+            # Skip subdirectories starting with dot (e.g. .vagrant).
+            filename = None
+        else:
+            # Strip current directory and following slashes.
+            filename = filename[TOP_DIR_LEN:].lstrip(os.sep)
+    elif filename.startswith(os.sep):
+        # Skip absolute paths not under current directory.
+        filename = None
+    if filename:
         func_name = get_function_name_from_frame(frame)
         function_key = FunctionKey(filename, code.co_firstlineno, func_name)
 
