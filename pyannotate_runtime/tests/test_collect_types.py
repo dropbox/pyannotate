@@ -567,6 +567,14 @@ class TestCollectTypes(TestBaseClass):
         self.assert_type_comments('two_dict_comprehensions',
                                   ['() -> Dict[int, Dict[Tuple[int, int], int]]'])
 
+    def test_skip_lambda(self):
+        # type: () -> None
+        with self.collecting_types():
+            (lambda: None)()
+            (lambda x: x)(0)
+            (lambda x, y: x+y)(0, 0)
+        assert self.stats == []
+
 
 def foo(arg):
     # type: (Any) -> Any

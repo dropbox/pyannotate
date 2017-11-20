@@ -478,7 +478,7 @@ def prep_args(arg_info):
     pos_args = []  # type: List[InternalType]
     if filtered_args:
         for arg in filtered_args:
-            if not isinstance(arg, (list, dict)) and arg in arg_info.locals:
+            if isinstance(arg, str) and arg in arg_info.locals:
                 # here we know that return type will be of type "type"
                 resolved_type = resolve_type(arg_info.locals[arg])
                 pos_args.append(resolved_type)
@@ -749,23 +749,25 @@ def _trace_dispatch(frame, event, arg):
         return
 
     # Track calls under current directory only.
-    # TODO: Make this configurable.
     filename = _filter_filename(code.co_filename)
     if filename:
         func_name = get_function_name_from_frame(frame)
-        function_key = FunctionKey(filename, code.co_firstlineno, func_name)
-
-        if event == 'call':
-            # TODO(guido): Make this faster
-            arg_info = inspect.getargvalues(frame)  # type: ArgInfo
-            resolved_types = prep_args(arg_info)
-            _task_queue.put(KeyAndTypes(function_key, resolved_types))
-        elif event == 'return':
-            # This event is also triggered if a function raises an exception,
-            # and in this case the return value is 'None'.  There doesn't seem
-            # to be a way to distinguish an exception from a None return,
-            # unfortunately.
-            _task_queue.put(KeyAndReturn(function_key, resolve_type(arg)))
+        if not func_name or func_name[0] == '<':
+            # Could be a lambda or a comprehension; we're not interested.
+            sampling_counters[key] = None
+        else:
+            function_key = FunctionKey(filename, code.co_firstlineno, func_name)
+            if event == 'call':
+                # TODO(guido): Make this faster
+                arg_info = inspect.getargvalues(frame)  # type: ArgInfo
+                resolved_types = prep_args(arg_info)
+                _task_queue.put(KeyAndTypes(function_key, resolved_types))
+            elif event == 'return':
+                # This event is also triggered if a function raises an exception,
+                # and in this case the return value is 'None'.  There doesn't seem
+                # to be a way to distinguish an exception from a None return,
+                # unfortunately.
+                _task_queue.put(KeyAndReturn(function_key, resolve_type(arg)))
     else:
         sampling_counters[key] = None  # We're not interested in this function.
 
