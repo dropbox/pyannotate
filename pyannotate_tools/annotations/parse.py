@@ -48,6 +48,8 @@ TYPE_FIXUPS = {
     'operator.methodcaller': 'Callable',
     'method-wrapper': 'Callable',
     'mappingproxy': 'Mapping',
+    'file': 'IO[bytes]',
+    'instance': 'Any',
 }
 
 
