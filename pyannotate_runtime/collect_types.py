@@ -470,7 +470,7 @@ def prep_args(arg_info):
     pos_args = []  # type: List[InternalType]
     if filtered_args:
         for arg in filtered_args:
-            if not isinstance(arg, (list, dict)):
+            if not isinstance(arg, (list, dict)) and arg in arg_info.locals:
                 # here we know that return type will be of type "type"
                 resolved_type = resolve_type(arg_info.locals[arg])
                 pos_args.append(resolved_type)

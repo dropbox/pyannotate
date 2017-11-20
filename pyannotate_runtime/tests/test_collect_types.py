@@ -154,6 +154,17 @@ def problematic_dup(uni, bol):
     return {u"foo": [], u"bart": u'ads', u"bax": 23}, b'str'
 
 
+def two_dict_comprehensions():
+    d = {1: {1: 2}}
+    return {
+        i: {
+            (i, k): l
+            for k, l in j.items()
+        }
+        for i, j in d.items()
+    }
+
+
 class TestCollectTypes(unittest.TestCase):
 
     def setUp(self):
@@ -539,3 +550,11 @@ class TestCollectTypes(unittest.TestCase):
             func('')
         self.assert_type_comments('func', ['(int) -> int',
                                            '(str) -> str'])
+
+
+    def test_no_crash_on_nested_dict_comps(self):
+        # type: () -> None
+        with self.collecting_types():
+            two_dict_comprehensions()
+        self.assert_type_comments('two_dict_comprehensions',
+                                  ['() -> Dict[int, Dict[Tuple[int, int], int]]'])
