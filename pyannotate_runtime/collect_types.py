@@ -35,10 +35,12 @@ from threading import Thread
 from mypy_extensions import TypedDict
 from six import iteritems
 from six.moves import range
-from six.moves.queue import Queue
+from six.moves.queue import Queue  # type: ignore  # No library stub yet
 from typing import (
     Any,
+    Callable,
     Dict,
+    Iterator,
     List,
     NamedTuple,
     Optional,
@@ -651,6 +653,7 @@ call_pending = set()  # type: Set[int]
 
 @contextmanager
 def collect():
+    # type: () -> Iterator[None]
     resume()
     try:
         yield
@@ -676,6 +679,30 @@ def resume():
     global running  # pylint: disable=global-statement
     running = True
     sampling_counters.clear()
+
+
+def default_filter_filename(filename):
+    # type: (str) -> Optional[str]
+    """Default filter for filenames.
+
+    Returns either a normalized filename or None.
+    You can pass your own filter to init_types_collection().
+    """
+    if filename.startswith(TOP_DIR):
+        if filename.startswith(TOP_DIR_DOT):
+            # Skip subdirectories starting with dot (e.g. .vagrant).
+            return None
+        else:
+            # Strip current directory and following slashes.
+            return filename[TOP_DIR_LEN:].lstrip(os.sep)
+    elif filename.startswith(os.sep):
+        # Skip absolute paths not under current directory.
+        return None
+    else:
+        return filename
+
+
+_filter_filename = default_filter_filename  # type: Callable[[str], Optional[str]]
 
 
 def _trace_dispatch(frame, event, arg):
@@ -723,17 +750,7 @@ def _trace_dispatch(frame, event, arg):
 
     # Track calls under current directory only.
     # TODO: Make this configurable.
-    filename = code.co_filename
-    if filename.startswith(TOP_DIR):
-        if filename.startswith(TOP_DIR_DOT):
-            # Skip subdirectories starting with dot (e.g. .vagrant).
-            filename = None
-        else:
-            # Strip current directory and following slashes.
-            filename = filename[TOP_DIR_LEN:].lstrip(os.sep)
-    elif filename.startswith(os.sep):
-        # Skip absolute paths not under current directory.
-        filename = None
+    filename = _filter_filename(code.co_filename)
     if filename:
         func_name = get_function_name_from_frame(frame)
         function_key = FunctionKey(filename, code.co_firstlineno, func_name)
@@ -812,12 +829,18 @@ def dumps_stats():
     return json.dumps(res, indent=4)
 
 
-def init_types_collection():
-    # type: () -> None
+def init_types_collection(filter_filename=default_filter_filename):
+    # type: (Callable[[str], Optional[str]]) -> None
     """
     Setup profiler hooks to enable type collection.
     Call this one time from the main thread.
+
+    The optional argument is a filter that maps a filename (from
+    code.co_filename) to either a normalized filename or None.
+    For the default filter see default_filter_filename().
     """
+    global _filter_filename
+    _filter_filename = filter_filename
     sys.setprofile(_trace_dispatch)
     threading.setprofile(_trace_dispatch)
 

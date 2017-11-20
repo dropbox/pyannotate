@@ -20,6 +20,7 @@ from typing import (
     Dict,
     Iterator,
     List,
+    Optional,
     Text,
     Tuple,
     Union,
@@ -155,6 +156,7 @@ def problematic_dup(uni, bol):
 
 
 def two_dict_comprehensions():
+    # type: () -> Dict[int, Dict[Tuple[int, int], int]]
     d = {1: {1: 2}}
     return {
         i: {
@@ -165,36 +167,17 @@ def two_dict_comprehensions():
     }
 
 
-class TestCollectTypes(unittest.TestCase):
+class TestBaseClass(unittest.TestCase):
 
     def setUp(self):
         # type: () -> None
-        super(TestCollectTypes, self).setUp()
+        super(TestBaseClass, self).setUp()
         # Stats in the same format as the generated JSON.
         self.stats = []  # type: List[collect_types.FunctionData]
-        collect_types.init_types_collection()
 
     def tearDown(self):
         # type: () -> None
         collect_types.stop_types_collection()
-
-    # following type annotations are intentionally use Any,
-    # because we are testing runtime type collection
-
-    def foo(self, int_arg, list_arg):
-        # type: (Any, Any) -> None
-        """foo"""
-        self.bar(int_arg, list_arg)
-
-    def bar(self, int_arg, list_arg):
-        # type: (Any, Any) -> Any
-        """bar"""
-        return len(self.baz(list_arg)) + int_arg
-
-    def baz(self, list_arg):
-        # type: (Any) -> Any
-        """baz"""
-        return set([int(s) for s in list_arg])
 
     def load_stats(self):
         # type: () -> None
@@ -232,6 +215,32 @@ class TestCollectTypes(unittest.TestCase):
             assert set(item['type_comments']) == set(comments)
         assert len(item['type_comments']) == len(comments)
         assert os.path.join(collect_types.TOP_DIR, item['path']) == __file__
+
+
+class TestCollectTypes(TestBaseClass):
+
+    def setUp(self):
+        # type: () -> None
+        super(TestCollectTypes, self).setUp()
+        collect_types.init_types_collection()
+
+    # following type annotations are intentionally use Any,
+    # because we are testing runtime type collection
+
+    def foo(self, int_arg, list_arg):
+        # type: (Any, Any) -> None
+        """foo"""
+        self.bar(int_arg, list_arg)
+
+    def bar(self, int_arg, list_arg):
+        # type: (Any, Any) -> Any
+        """bar"""
+        return len(self.baz(list_arg)) + int_arg
+
+    def baz(self, list_arg):
+        # type: (Any) -> Any
+        """baz"""
+        return set([int(s) for s in list_arg])
 
     def test_type_collection_on_main_thread(self):
         # type: () -> None
@@ -551,10 +560,40 @@ class TestCollectTypes(unittest.TestCase):
         self.assert_type_comments('func', ['(int) -> int',
                                            '(str) -> str'])
 
-
     def test_no_crash_on_nested_dict_comps(self):
         # type: () -> None
         with self.collecting_types():
             two_dict_comprehensions()
         self.assert_type_comments('two_dict_comprehensions',
                                   ['() -> Dict[int, Dict[Tuple[int, int], int]]'])
+
+
+def foo(arg):
+    # type: (Any) -> Any
+    return [arg]
+
+
+class TestInitWithFilter(TestBaseClass):
+
+    def always_foo(self, filename):
+        # type: (str) -> Optional[str]
+        return 'foo.py'
+
+    def always_none(self, filename):
+        # type: (str) -> Optional[str]
+        return None
+
+    def test_init_with_filter(self):
+        # type: () -> None
+        collect_types.init_types_collection(self.always_foo)
+        with self.collecting_types():
+            foo(42)
+        assert len(self.stats) == 1
+        assert self.stats[0]['path'] == 'foo.py'
+
+    def test_init_with_none_filter(self):
+        # type: () -> None
+        collect_types.init_types_collection(self.always_none)
+        with self.collecting_types():
+            foo(42)
+        assert self.stats == []
