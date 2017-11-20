@@ -397,10 +397,16 @@ def get_function_name_from_frame(frame):
         if varname == 'self':
             inst = frame.f_locals.get(varname)
             if inst is not None:
-                mro = getattr(inst.__class__, '__mro__', None)
-                if mro is None:
-                    bases = getattr(inst.__class__, '__bases__', None)
-                    if bases is not None:
+                try:
+                    mro = inst.__class__.__mro__
+                except AttributeError:
+                    mro = None
+                else:
+                    try:
+                        bases = inst.__class__.__bases__
+                    except AttributeError:
+                        bases = None
+                    else:
                         mro = bases_to_mro(inst.__class__, bases)
                 if mro:
                     for cls in mro:
