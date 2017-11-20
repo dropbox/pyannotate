@@ -106,6 +106,9 @@ class FixAnnotate(BaseFix):
 
             # Also add 'from typing import Any' at the top if needed.
             self.patch_imports(argtypes + [restype], node)
+        else:
+            self.log_message("%s:%d: cannot insert annotation for one-line function" %
+                             (self.filename, node.get_lineno()))
 
     def insert_long_form(self, node, results, argtypes):
         argtypes = list(argtypes)  # We destroy it
