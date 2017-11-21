@@ -853,4 +853,4 @@ def stop_types_collection():
     Remove profiler hooks.
     """
     sys.setprofile(None)
-    threading.setprofile(None)
+    threading.setprofile(None)  # type: ignore

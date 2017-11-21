@@ -49,7 +49,8 @@ class FixAnnotate(BaseFix):
               funcdef< 'def' name=any parameters< '(' [args=any] ')' > ':' suite=any+ >
               """
 
-    counter = None if not os.getenv('MAXFIXES') else int(os.getenv('MAXFIXES'))
+    _maxfixes = os.getenv('MAXFIXES')
+    counter = None if not _maxfixes else int(_maxfixes)
 
     def transform(self, node, results):
         if FixAnnotate.counter is not None:
