@@ -21,10 +21,10 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Text,
     Tuple,
     Union,
 )
+from typing_extensions import Text
 
 from pyannotate_runtime import collect_types
 

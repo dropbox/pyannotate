@@ -25,7 +25,9 @@ import re
 from lib2to3.fixer_util import syms, touch_import
 from lib2to3.pgen2 import token
 from lib2to3.pytree import Base, Leaf, Node
-from typing import __all__ as typing_all, Dict, List, Optional, Text, Tuple, Union  # type: ignore
+from typing import __all__ as typing_all  # type: ignore
+from typing import Dict, List, Optional, Tuple, Union
+from typing_extensions import Text
 
 from .fix_annotate import FixAnnotate
 
