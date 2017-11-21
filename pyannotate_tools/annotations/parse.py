@@ -8,8 +8,9 @@ The collect_types tool is in pyannotate_runtime/collect_types.py.
 import json
 import re
 import sys
+from io import IOBase
 
-from typing import Any, List, Mapping, Set, Text, Tuple
+from typing import Any, List, Mapping, Set, Text, Tuple, Optional
 
 from mypy_extensions import NoReturn, TypedDict
 
@@ -85,14 +86,17 @@ class ParseError(Exception):
         self.comment = comment
 
 
-def parse_json(path):
-    # type: (str) -> List[FunctionInfo]
+def parse_json(path, stream=None):
+    # type: (str, Optional[IOBase]) -> List[FunctionInfo]
     """Deserialize a JSON file containing runtime collected types.
 
     The input JSON is expected to to have a list of RawEntry items.
     """
-    with open(path) as f:
-        data = json.load(f)  # type: List[RawEntry]
+    if isinstance(stream, IOBase):
+        data = json.load(stream)
+    else:
+        with open(path) as f:
+            data = json.load(f)  # type: List[RawEntry]
     result = []
 
     def assert_type(value, typ):

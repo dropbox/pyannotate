@@ -25,10 +25,12 @@ class TestMain(unittest.TestCase):
             }
         ]
         """
-        target = tempfile.NamedTemporaryFile(mode='r')
-        with self.temporary_json_file(data) as source_path:
-            generate_annotations_json(source_path, target.name)
+        target = tempfile.NamedTemporaryFile(mode='w+')
+        with self.temporary_json_file(data) as source:
+            generate_annotations_json(source[0], target.name, source_stream=source[1], target_stream=target.file)
 
+        target.flush()
+        target.file.seek(0)
         actual = target.read()
         actual = actual.replace(' \n', '\n')
         expected = textwrap.dedent("""\
@@ -66,8 +68,8 @@ class TestMain(unittest.TestCase):
         ]
         """
         with self.assertRaises(InferError) as e:
-            with self.temporary_json_file(data) as source_path:
-                generate_annotations_json(source_path, '/dummy')
+            with self.temporary_json_file(data) as source:
+                generate_annotations_json(source[0], '/dummy', source_stream=source[1])
         assert str(e.exception) == textwrap.dedent("""\
             Ambiguous argument kinds:
             (List[int], str) -> None
@@ -76,7 +78,8 @@ class TestMain(unittest.TestCase):
     @contextlib.contextmanager
     def temporary_json_file(self, data):
         # type: (str) -> Iterator[str]
-        with tempfile.NamedTemporaryFile(mode='w') as source:
+        with tempfile.NamedTemporaryFile(mode='w+') as source:
             source.write(data)
             source.flush()
-            yield source.name
+            source.file.seek(0)
+            yield source.name, source.file
