@@ -56,6 +56,31 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
 
+    def test_keyword_only_argument(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["Foo", "Bar"],
+                  "return_type": "Any"},
+              }])
+        a = """\
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, *, bar):
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, *, bar):
+                # type: (Foo, Bar) -> Any
+                return 42
+            """
+        self.check(a, b)
+
     def test_add_typing_import(self):
         self.setTestData(
             [{"func_name": "nop",
