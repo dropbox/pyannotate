@@ -181,14 +181,14 @@ def tokenize(s):
             tokens.append(Separator('->'))
             s = s[2:]
         else:
-            m = re.match(r'[-\w]+( *\. *[-\w]*)*', s)
+            m = re.match(r'[-\w]+( *\. *[-/\w]*)*', s)
             if not m:
                 raise ParseError(original)
             fullname = m.group(0)
             fullname = fullname.replace(' ', '')
             if fullname in TYPE_FIXUPS:
                 fullname = TYPE_FIXUPS[fullname]
-            if '-' in fullname:
+            if '-' in fullname or '/' in fullname:
                 # Not a valid Python name; there are many places that
                 # generate these, so we just substitute Any rather
                 # than crashing.
