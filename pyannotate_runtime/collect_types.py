@@ -616,7 +616,7 @@ _consumer_thread.start()
 
 running = False
 
-TOP_DIR = os.getcwd()
+TOP_DIR = os.path.join(os.getcwd(), '')     # current dir with trailing slash
 TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
 TOP_DIR_LEN = len(TOP_DIR)
 
