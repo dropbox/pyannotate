@@ -3,3 +3,4 @@ pytest
 setuptools
 six
 typing
+typing_extensions

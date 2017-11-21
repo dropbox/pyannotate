@@ -9,8 +9,8 @@ import json
 import re
 import sys
 
-from typing import Any, List, Mapping, Set, Text, Tuple
-
+from typing import Any, List, Mapping, Set, Tuple
+from typing_extensions import Text
 from mypy_extensions import NoReturn, TypedDict
 
 from pyannotate_tools.annotations.types import (
