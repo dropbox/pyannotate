@@ -46,6 +46,7 @@ TYPE_FIXUPS = {
     'instancemethod': 'Callable',
     'itertools.imap': 'Iterator',
     'operator.methodcaller': 'Callable',
+    'method': 'Callable',
     'method-wrapper': 'Callable',
     'mappingproxy': 'Mapping',
     'file': 'IO[bytes]',
