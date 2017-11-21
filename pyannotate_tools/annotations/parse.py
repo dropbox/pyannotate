@@ -189,8 +189,10 @@ def tokenize(s):
             if fullname in TYPE_FIXUPS:
                 fullname = TYPE_FIXUPS[fullname]
             if '-' in fullname:
-                # Not a valid Python name
-                raise ParseError(original)
+                # Not a valid Python name; there are many places that
+                # generate these, so we just substitute Any rather
+                # than crashing.
+                fullname = 'Any'
             tokens.append(DottedName(fullname))
             s = s[len(m.group(0)):]
 

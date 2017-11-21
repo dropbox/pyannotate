@@ -70,8 +70,7 @@ class TestTokenize(unittest.TestCase):
                              'DottedName(Iterator) End()')
         self.assert_tokenize('dictionary-valueiterator',
                              'DottedName(Iterator) End()')
-        with self.assertRaises(ParseError):
-            tokenize('foo-bar')
+        self.assert_tokenize('foo-bar', 'DottedName(Any) End()')
 
     def assert_tokenize(self, s, expected):
         # type: (str, str) -> None
