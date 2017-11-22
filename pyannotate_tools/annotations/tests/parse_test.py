@@ -40,12 +40,11 @@ class TestParseJson(unittest.TestCase):
             }
         ]
         """
-        with tempfile.NamedTemporaryFile(mode='w+') as f:
+        with tempfile.NamedTemporaryFile(mode='w') as f:
             f.write(data)
             f.flush()
-            f.seek(0)
 
-            result = parse_json(f.name, f)
+            result = parse_json(f.name)
         assert len(result) == 1
         item = result[0]
         assert item.path == 'pkg/thing.py'

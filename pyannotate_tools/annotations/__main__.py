@@ -42,7 +42,7 @@ def main():
 
     # Run pass 2 with output written to a temporary file.
     infile = args.type_info
-    generate_annotations_json(infile, tf.name, target_stream=tf)
+    generate_annotations_json(infile, tf.name)
 
     # Run pass 3 reading from a temporary file.
     FixAnnotateJson.stub_json_file = tf.name
