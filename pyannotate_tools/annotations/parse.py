@@ -202,7 +202,9 @@ def tokenize(s):
             if fullname.startswith('pytz.tzfile.'):
                 fullname = 'datetime.tzinfo'
             if '-' in fullname or '/' in fullname:
-                # Not a valid Python name
+                # Not a valid Python name; there are many places that
+                # generate these, so we just substitute Any rather
+                # than crashing.
                 fullname = 'Any'
             tokens.append(DottedName(fullname))
             s = s[len(m.group(0)):]
