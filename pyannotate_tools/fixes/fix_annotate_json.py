@@ -27,7 +27,11 @@ from lib2to3.pgen2 import token
 from lib2to3.pytree import Base, Leaf, Node
 from typing import __all__ as typing_all  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
-from typing_extensions import Text
+try:
+    from typing import Text
+except ImportError:
+    # In Python 3.5.1 stdlib, typing.py does not define Text
+    Text = str  # type: ignore
 
 from .fix_annotate import FixAnnotate
 

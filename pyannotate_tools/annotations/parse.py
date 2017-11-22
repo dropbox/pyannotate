@@ -10,7 +10,11 @@ import re
 import sys
 
 from typing import Any, List, Mapping, Set, Tuple, Optional, IO
-from typing_extensions import Text
+try:
+    from typing import Text
+except ImportError:
+    # In Python 3.5.1 stdlib, typing.py does not define Text
+    Text = str  # type: ignore
 from mypy_extensions import NoReturn, TypedDict
 
 from pyannotate_tools.annotations.types import (
