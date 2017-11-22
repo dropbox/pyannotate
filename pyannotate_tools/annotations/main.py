@@ -1,9 +1,8 @@
 """Main entry point to mypy annotation inference utility."""
 
 import json
-from io import IOBase
 
-from typing import List, Optional
+from typing import List, Optional, IO
 from mypy_extensions import TypedDict
 
 from pyannotate_tools.annotations.types import ARG_STAR, ARG_STARSTAR
@@ -24,7 +23,7 @@ FunctionData = TypedDict('FunctionData', {'path': str,
 
 
 def generate_annotations_json(source_path, target_path, source_stream=None, target_stream=None):
-    # type: (str, str, Optional[IOBase], Optional[IOBase]) -> None
+    # type: (str, str, Optional[IO[str]], Optional[IO[str]]) -> None
     """Produce annotation data JSON file from a JSON file with runtime-collected types.
 
     Data formats:
@@ -56,7 +55,7 @@ def generate_annotations_json(source_path, target_path, source_stream=None, targ
             'samples': item.samples
         }  # type: FunctionData
         results.append(data)
-    if isinstance(target_stream, IOBase):
+    if target_stream:
         json.dump(results, target_stream, sort_keys=True, indent=4)
     else:
         with open(target_path, 'w') as f:

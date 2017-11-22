@@ -3,7 +3,7 @@ import tempfile
 import textwrap
 import unittest
 
-from typing import Iterator
+from typing import Iterator, Tuple, IO
 
 from pyannotate_tools.annotations.infer import InferError
 from pyannotate_tools.annotations.main import generate_annotations_json
@@ -27,10 +27,10 @@ class TestMain(unittest.TestCase):
         """
         target = tempfile.NamedTemporaryFile(mode='w+')
         with self.temporary_json_file(data) as source:
-            generate_annotations_json(source[0], target.name, source_stream=source[1], target_stream=target.file)
+            generate_annotations_json(source.name, target.name, source_stream=source, target_stream=target)
 
         target.flush()
-        target.file.seek(0)
+        target.seek(0)
         actual = target.read()
         actual = actual.replace(' \n', '\n')
         expected = textwrap.dedent("""\
@@ -69,7 +69,7 @@ class TestMain(unittest.TestCase):
         """
         with self.assertRaises(InferError) as e:
             with self.temporary_json_file(data) as source:
-                generate_annotations_json(source[0], '/dummy', source_stream=source[1])
+                generate_annotations_json(source.name, '/dummy', source_stream=source)
         assert str(e.exception) == textwrap.dedent("""\
             Ambiguous argument kinds:
             (List[int], str) -> None
@@ -77,9 +77,9 @@ class TestMain(unittest.TestCase):
 
     @contextlib.contextmanager
     def temporary_json_file(self, data):
-        # type: (str) -> Iterator[str]
+        # type: (str) -> Iterator[IO[str]]
         with tempfile.NamedTemporaryFile(mode='w+') as source:
             source.write(data)
             source.flush()
-            source.file.seek(0)
-            yield source.name, source.file
+            source.seek(0)
+            yield source
