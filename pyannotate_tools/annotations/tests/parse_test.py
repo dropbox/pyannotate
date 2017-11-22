@@ -72,7 +72,8 @@ class TestTokenize(unittest.TestCase):
         self.assert_tokenize('dictionary-valueiterator',
                              'DottedName(Iterator) End()')
         self.assert_tokenize('foo-bar', 'DottedName(Any) End()')
-        self.assert_tokenize('pytz.tzfile.Europe/Amsterdam', 'DottedName(Any) End()')
+        self.assert_tokenize('pytz.tzfile.Europe/Amsterdam',
+                             'DottedName(datetime.tzinfo) End()')
 
     def assert_tokenize(self, s, expected):
         # type: (str, str) -> None

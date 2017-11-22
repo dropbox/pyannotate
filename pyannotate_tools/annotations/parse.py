@@ -195,6 +195,12 @@ def tokenize(s):
             fullname = fullname.replace(' ', '')
             if fullname in TYPE_FIXUPS:
                 fullname = TYPE_FIXUPS[fullname]
+            # pytz creates classes with the name of the timezone being used:
+            # https://github.com/stub42/pytz/blob/f55399cddbef67c56db1b83e0939ecc1e276cf42/src/pytz/tzfile.py#L120-L123
+            # This causes pyannotates to crash as it's invalid to have a class
+            # name with a `/` in it (e.g. "pytz.tzfile.America/Los_Angeles")
+            if fullname.startswith('pytz.tzfile.'):
+                fullname = 'datetime.tzinfo'
             if '-' in fullname or '/' in fullname:
                 # Not a valid Python name; there are many places that
                 # generate these, so we just substitute Any rather
