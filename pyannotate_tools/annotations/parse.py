@@ -9,7 +9,7 @@ import json
 import re
 import sys
 
-from typing import Any, List, Mapping, Set, Tuple
+from typing import Any, List, Mapping, Set, Tuple, Optional, IO
 from typing_extensions import Text
 from mypy_extensions import NoReturn, TypedDict
 
@@ -86,14 +86,17 @@ class ParseError(Exception):
         self.comment = comment
 
 
-def parse_json(path):
-    # type: (str) -> List[FunctionInfo]
+def parse_json(path, stream=None):
+    # type: (str, Optional[IO[str]]) -> List[FunctionInfo]
     """Deserialize a JSON file containing runtime collected types.
 
     The input JSON is expected to to have a list of RawEntry items.
     """
-    with open(path) as f:
-        data = json.load(f)  # type: List[RawEntry]
+    if stream:
+        data = json.load(stream)  # type: List[RawEntry]
+    else:
+        with open(path) as f:
+            data = json.load(f)
     result = []
 
     def assert_type(value, typ):
