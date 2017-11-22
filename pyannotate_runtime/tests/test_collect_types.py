@@ -11,7 +11,7 @@ import os
 import sched
 import time
 import unittest
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from threading import Thread
 
 from six import PY2
@@ -170,6 +170,9 @@ def two_dict_comprehensions():
         for i, j in d.items()
     }
 
+def ordered_dict_as_dict():
+    # type: () -> Dict[str, int]
+    return OrderedDict([('a', 1), ('b', 2)])
 
 class TestBaseClass(unittest.TestCase):
 
@@ -578,6 +581,13 @@ class TestCollectTypes(TestBaseClass):
             (lambda x: x)(0)
             (lambda x, y: x+y)(0, 0)
         assert self.stats == []
+
+    def test_ordered_dict_treated_as_dict(self):
+        # type: () -> None
+        with self.collecting_types():
+            ordered_dict_as_dict()
+        self.assert_type_comments('ordered_dict_as_dict',
+                                  ['() -> Dict[str, int]'])
 
 
 def foo(arg):
