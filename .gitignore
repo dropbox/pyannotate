@@ -1,4 +1,25 @@
-/.cache
-/*.egg-info
 /build
 /dist
+__pycache__
+.mypy_cache/
+venv/
+.venv/
+
+# pytest
+/.cache
+
+# Packages
+*.egg
+*.egg-info
+
+# IDEs
+.idea
+*.swp
+.vscode/
+
+# Operating Systems
+.DS_Store
+
+# Coverage Files
+htmlcov
+.coverage*
