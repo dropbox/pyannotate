@@ -27,7 +27,11 @@ from lib2to3.pgen2 import token
 from lib2to3.pytree import Base, Leaf, Node
 from typing import __all__ as typing_all  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
-from typing_extensions import Text
+try:
+    from typing import Text
+except ImportError:
+    # In Python 3.5.1 stdlib, typing.py does not define Text
+    Text = str  # type: ignore
 
 from .fix_annotate import FixAnnotate
 
@@ -118,12 +122,15 @@ def count_args(node, results):
     # Interpret children according to the following grammar:
     # (('*'|'**')? NAME ['=' expr] ','?)*
     skip = False
+    previous_token_is_star = False
     for child in children:
         if skip:
             skip = False
         elif isinstance(child, Leaf):
+            # A single '*' indicates the rest of the arguments are keyword only
+            # and shouldn't be counted as a `*`.
             if child.type == token.STAR:
-                star = True
+                previous_token_is_star = True
             elif child.type == token.DOUBLESTAR:
                 starstar = True
             elif child.type == token.NAME:
@@ -131,8 +138,12 @@ def count_args(node, results):
                     if child.value in ('self', 'cls'):
                         selfish = True
                 count += 1
+                if previous_token_is_star:
+                    star = True
             elif child.type == token.EQUAL:
                 skip = True
+            if child.type != token.STAR:
+                previous_token_is_star = False
     return count, selfish, star, starstar
 
 class FixAnnotateJson(FixAnnotate):

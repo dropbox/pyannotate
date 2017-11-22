@@ -17,6 +17,12 @@ from pyannotate_tools.annotations.types import (
     UnionType,
 )
 
+IGNORED_ITEMS = {
+    'unittest.mock.Mock',
+    'unittest.mock.MagicMock',
+    'mock.mock.Mock',
+    'mock.mock.MagicMock',
+}
 
 class InferError(Exception):
     """Raised if we can't infer a signature for some reason."""
@@ -85,7 +91,8 @@ def simplify_types(types):
     # type: (Iterable[AbstractType]) -> List[AbstractType]
     """Given some types, give simplified types representing the union of types."""
     flattened = flatten_types(types)
-    items = remove_redundant_items(flattened)
+    items = filter_ignored_items(flattened)
+    items = remove_redundant_items(items)
     items = [simplify_recursive(item) for item in items]
     items = merge_items(items)
     items = dedupe_types(items)
@@ -129,6 +136,11 @@ def dedupe_types(types):
     # type: (Iterable[AbstractType]) -> List[AbstractType]
     return sorted(set(types), key=lambda t: str(t))
 
+def filter_ignored_items(items):
+     # type: (List[AbstractType]) -> List[AbstractType]
+    return [item for item in items
+            if not isinstance(item, ClassType) or
+            item.name not in IGNORED_ITEMS]
 
 def remove_redundant_items(items):
     # type: (List[AbstractType]) -> List[AbstractType]
@@ -158,9 +170,16 @@ def is_redundant_union_item(first, other):
             return True
         elif first.name == 'int' and other.name == 'float':
             return True
-        elif (first.name in ('List', 'Dict', 'Set') and not first.args and other.args
-              and other.name == first.name):
-            return True
+        elif (first.name in ('List', 'Dict', 'Set') and
+                  other.name == first.name):
+            if not first.args and other.args:
+                return True
+            elif len(first.args) == len(other.args) and first.args:
+                result = all(first_arg == other_arg or other_arg == AnyType()
+                             for first_arg, other_arg
+                             in zip(first.args, other.args))
+                return result
+
     return False
 
 
