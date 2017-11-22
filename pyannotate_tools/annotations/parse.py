@@ -9,8 +9,8 @@ import json
 import re
 import sys
 
-from typing import Any, List, Mapping, Set, Text, Tuple, Optional, IO
-
+from typing import Any, List, Mapping, Set, Tuple, Optional, IO
+from typing_extensions import Text
 from mypy_extensions import NoReturn, TypedDict
 
 from pyannotate_tools.annotations.types import (
@@ -46,6 +46,7 @@ TYPE_FIXUPS = {
     'instancemethod': 'Callable',
     'itertools.imap': 'Iterator',
     'operator.methodcaller': 'Callable',
+    'method': 'Callable',
     'method-wrapper': 'Callable',
     'mappingproxy': 'Mapping',
     'file': 'IO[bytes]',
@@ -183,16 +184,18 @@ def tokenize(s):
             tokens.append(Separator('->'))
             s = s[2:]
         else:
-            m = re.match(r'[-\w]+( *\. *[-\w]*)*', s)
+            m = re.match(r'[-\w]+( *\. *[-/\w]*)*', s)
             if not m:
                 raise ParseError(original)
             fullname = m.group(0)
             fullname = fullname.replace(' ', '')
             if fullname in TYPE_FIXUPS:
                 fullname = TYPE_FIXUPS[fullname]
-            if '-' in fullname:
-                # Not a valid Python name
-                raise ParseError(original)
+            if '-' in fullname or '/' in fullname:
+                # Not a valid Python name; there are many places that
+                # generate these, so we just substitute Any rather
+                # than crashing.
+                fullname = 'Any'
             tokens.append(DottedName(fullname))
             s = s[len(m.group(0)):]
 
