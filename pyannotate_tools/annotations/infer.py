@@ -170,9 +170,16 @@ def is_redundant_union_item(first, other):
             return True
         elif first.name == 'int' and other.name == 'float':
             return True
-        elif (first.name in ('List', 'Dict', 'Set') and not first.args and other.args
-              and other.name == first.name):
-            return True
+        elif (first.name in ('List', 'Dict', 'Set') and
+                  other.name == first.name):
+            if not first.args and other.args:
+                return True
+            elif len(first.args) == len(other.args) and first.args:
+                result = all(first_arg == other_arg or other_arg == AnyType()
+                             for first_arg, other_arg
+                             in zip(first.args, other.args))
+                return result
+
     return False
 
 

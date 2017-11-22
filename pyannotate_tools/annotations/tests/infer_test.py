@@ -64,6 +64,13 @@ class TestInfer(unittest.TestCase):
                            ([(ClassType('Text'), ARG_POS)],
                             ClassType('None')))
 
+    def test_remove_redundant_dict_item(self):
+        # type: () -> None
+        self.assert_infer(['(Dict[str, Any]) -> None',
+                           '(Dict[str, str]) -> None'],
+                           ([(ClassType('Dict', [ClassType('str'), AnyType()]), ARG_POS)],
+                            ClassType('None')))
+
     def test_simplify_list_item_types(self):
         # type: () -> None
         self.assert_infer(['(List[Union[bool, int]]) -> None'],
