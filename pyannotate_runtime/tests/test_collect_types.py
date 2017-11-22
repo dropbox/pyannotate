@@ -24,7 +24,7 @@ from typing import (
     Tuple,
     Union,
 )
-from typing_extensions import Text
+from typing import Text  # Or from typing_extensions
 
 from pyannotate_runtime import collect_types
 

@@ -27,7 +27,7 @@ from lib2to3.pgen2 import token
 from lib2to3.pytree import Base, Leaf, Node
 from typing import __all__ as typing_all  # type: ignore
 from typing import Dict, List, Optional, Tuple, Union
-from typing_extensions import Text
+from typing import Text  # Or from typing_extensions
 
 from .fix_annotate import FixAnnotate
 
