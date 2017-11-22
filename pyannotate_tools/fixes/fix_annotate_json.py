@@ -122,12 +122,15 @@ def count_args(node, results):
     # Interpret children according to the following grammar:
     # (('*'|'**')? NAME ['=' expr] ','?)*
     skip = False
+    previous_token_is_star = False
     for child in children:
         if skip:
             skip = False
         elif isinstance(child, Leaf):
+            # A single '*' indicates the rest of the arguments are keyword only
+            # and shouldn't be counted as a `*`.
             if child.type == token.STAR:
-                star = True
+                previous_token_is_star = True
             elif child.type == token.DOUBLESTAR:
                 starstar = True
             elif child.type == token.NAME:
@@ -135,8 +138,12 @@ def count_args(node, results):
                     if child.value in ('self', 'cls'):
                         selfish = True
                 count += 1
+                if previous_token_is_star:
+                    star = True
             elif child.type == token.EQUAL:
                 skip = True
+            if child.type != token.STAR:
+                previous_token_is_star = False
     return count, selfish, star, starstar
 
 class FixAnnotateJson(FixAnnotate):
