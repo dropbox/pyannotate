@@ -22,14 +22,14 @@ setup(name='pyannotate',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
-          ## 'Programming Language :: Python :: 3.5',  # See https://github.com/dropbox/pyannotate/issues/36
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
           'Topic :: Software Development',
           ],
       install_requires = ['six',
                           'mypy_extensions',
-                          ## 'typing_extensions',  # See https://github.com/dropbox/pyannotate/issues/36
                           'typing >= 3.5.3; python_version < "3.5"'
                           ],
       )

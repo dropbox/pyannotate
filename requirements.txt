@@ -3,4 +3,3 @@ pytest
 setuptools
 six
 typing
-# typing_extensions  # See https://github.com/dropbox/pyannotate/issues/36

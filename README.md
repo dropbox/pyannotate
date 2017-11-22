@@ -61,8 +61,7 @@ Red tape
 Installation
 ------------
 
-This should work for Python 2.7 as well as for Python 3.6 and higher.
-(It works for Python 3.4 and 3.5 as well, except for Python 3.5.1.)
+This should work for Python 2.7 as well as for Python 3.4 and higher.
 
 ```
 pip install pyannotate
