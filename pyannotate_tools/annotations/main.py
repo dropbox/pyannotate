@@ -2,7 +2,7 @@
 
 import json
 
-from typing import List, Optional, IO
+from typing import List
 from mypy_extensions import TypedDict
 
 from pyannotate_tools.annotations.types import ARG_STAR, ARG_STARSTAR
@@ -22,8 +22,8 @@ FunctionData = TypedDict('FunctionData', {'path': str,
                                           'samples': int})
 
 
-def generate_annotations_json(source_path, target_path, source_stream=None, target_stream=None):
-    # type: (str, str, Optional[IO[str]], Optional[IO[str]]) -> None
+def generate_annotations_json(source_path, target_path):
+    # type: (str, str) -> None
     """Produce annotation data JSON file from a JSON file with runtime-collected types.
 
     Data formats:
@@ -31,7 +31,7 @@ def generate_annotations_json(source_path, target_path, source_stream=None, targ
     * The source JSON is a list of pyannotate_tools.annotations.parse.RawEntry items.
     * The output JSON is a list of FunctionData items.
     """
-    items = parse_json(source_path, source_stream)
+    items = parse_json(source_path)
     results = []
     for item in items:
         arg_types, return_type = infer_annotation(item.type_comments)
@@ -55,8 +55,5 @@ def generate_annotations_json(source_path, target_path, source_stream=None, targ
             'samples': item.samples
         }  # type: FunctionData
         results.append(data)
-    if target_stream:
-        json.dump(results, target_stream, sort_keys=True, indent=4)
-    else:
-        with open(target_path, 'w') as f:
-            json.dump(results, f, sort_keys=True, indent=4)
+    with open(target_path, 'w') as f:
+        json.dump(results, f, sort_keys=True, indent=4)
