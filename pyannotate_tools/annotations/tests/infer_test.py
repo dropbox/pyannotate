@@ -101,6 +101,12 @@ class TestInfer(unittest.TestCase):
         actual = infer_annotation(comments)
         assert actual == expected
 
+    def test_infer_ignore_mock(self):
+        # type: () -> None
+        self.assert_infer(['(mock.mock.Mock) -> None',
+                           '(str) -> None'],
+                           ([(ClassType('str'), ARG_POS)],
+                            ClassType('None')))
 
 CT = ClassType
 
