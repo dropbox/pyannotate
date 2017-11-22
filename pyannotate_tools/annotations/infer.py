@@ -55,7 +55,7 @@ def infer_annotation(type_comments):
         combined = combine_types(types)
         if kind != ARG_POS and (len(str(combined)) > 120 or isinstance(combined, UnionType)):
             # Avoid some noise.
-            combined = AnyType()
+            combined = AnyType(is_fallback=True)
         combined_args.append(Argument(combined, kind))
     combined_return = combine_types(returns)
     return combined_args, combined_return
@@ -94,10 +94,11 @@ def simplify_types(types):
     items = filter_ignored_items(flattened)
     items = remove_redundant_items(items)
     items = [simplify_recursive(item) for item in items]
+    items = remove_redundant_items(items)
     items = merge_items(items)
     items = dedupe_types(items)
     if len(items) > 3:
-        return [AnyType()]
+        return [AnyType(is_fallback=True)]
     else:
         return items
 
@@ -114,7 +115,7 @@ def simplify_recursive(typ):
                 and isinstance(args[0], ClassType) and args[0].name in ('str', 'Text')
                 and isinstance(args[1], UnionType) and not is_optional(args[1])):
             # Looks like a potential case for TypedDict, which we don't properly support yet.
-            return ClassType('Dict', [args[0], AnyType()])
+            return ClassType('Dict', [args[0], AnyType(is_fallback=True)])
         return simplified
     elif isinstance(typ, TupleType):
         return TupleType([simplify_recursive(item) for item in typ.items])
@@ -175,7 +176,9 @@ def is_redundant_union_item(first, other):
             if not first.args and other.args:
                 return True
             elif len(first.args) == len(other.args) and first.args:
-                result = all(first_arg == other_arg or other_arg == AnyType()
+                result = all((first_arg == other_arg or
+                              isinstance(other_arg, AnyType) and
+                              other_arg.is_fallback)
                              for first_arg, other_arg
                              in zip(first.args, other.args))
                 return result

@@ -38,6 +38,9 @@ class ClassType(AbstractType):
 
 class AnyType(AbstractType):
     """The type Any"""
+    def __init__(self, is_fallback=False):
+        # typeL (bool) -> None
+        self.is_fallback = is_fallback
 
     def __repr__(self):
         # type: () -> str
