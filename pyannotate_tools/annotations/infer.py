@@ -92,10 +92,12 @@ def simplify_types(types):
     """Given some types, give simplified types representing the union of types."""
     flattened = flatten_types(types)
     items = filter_ignored_items(flattened)
-    items = remove_redundant_items(items)
     items = [simplify_recursive(item) for item in items]
     items = merge_items(items)
     items = dedupe_types(items)
+    # We have to remove reundant items after everything has been simplified and
+    # merged as this simplification may be what makes items redundant.
+    items = remove_redundant_items(items)
     if len(items) > 3:
         return [AnyType()]
     else:
@@ -138,9 +140,10 @@ def dedupe_types(types):
 
 def filter_ignored_items(items):
      # type: (List[AbstractType]) -> List[AbstractType]
-    return [item for item in items
-            if not isinstance(item, ClassType) or
-            item.name not in IGNORED_ITEMS]
+    result = [item for item in items
+              if not isinstance(item, ClassType) or
+              item.name not in IGNORED_ITEMS]
+    return result or [AnyType()]
 
 def remove_redundant_items(items):
     # type: (List[AbstractType]) -> List[AbstractType]
