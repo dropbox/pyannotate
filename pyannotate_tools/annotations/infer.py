@@ -17,6 +17,12 @@ from pyannotate_tools.annotations.types import (
     UnionType,
 )
 
+IGNORED_ITEMS = {
+    'unittest.mock.Mock',
+    'unittest.mock.MagicMock',
+    'mock.mock.Mock',
+    'mock.mock.MagicMock',
+}
 
 class InferError(Exception):
     """Raised if we can't infer a signature for some reason."""
@@ -85,7 +91,8 @@ def simplify_types(types):
     # type: (Iterable[AbstractType]) -> List[AbstractType]
     """Given some types, give simplified types representing the union of types."""
     flattened = flatten_types(types)
-    items = remove_redundant_items(flattened)
+    items = filter_ignored_items(flattened)
+    items = remove_redundant_items(items)
     items = [simplify_recursive(item) for item in items]
     items = merge_items(items)
     items = dedupe_types(items)
@@ -129,6 +136,11 @@ def dedupe_types(types):
     # type: (Iterable[AbstractType]) -> List[AbstractType]
     return sorted(set(types), key=lambda t: str(t))
 
+def filter_ignored_items(items):
+     # type: (List[AbstractType]) -> List[AbstractType]
+    return [item for item in items
+            if not isinstance(item, ClassType) or
+            item.name not in IGNORED_ITEMS]
 
 def remove_redundant_items(items):
     # type: (List[AbstractType]) -> List[AbstractType]
