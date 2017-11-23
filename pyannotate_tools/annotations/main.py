@@ -22,8 +22,8 @@ FunctionData = TypedDict('FunctionData', {'path': str,
                                           'samples': int})
 
 
-def generate_annotations_json(source_path, target_path):
-    # type: (str, str) -> None
+def generate_annotations_json_string(source_path):
+    # type: (str) -> List[FunctionData]
     """Produce annotation data JSON file from a JSON file with runtime-collected types.
 
     Data formats:
@@ -55,5 +55,11 @@ def generate_annotations_json(source_path, target_path):
             'samples': item.samples
         }  # type: FunctionData
         results.append(data)
+    return results
+
+def generate_annotations_json(source_path, target_path):
+    # type: (str, str) -> None
+    """Like generate_annotations_json_string() but writes JSON to a file."""
+    results = generate_annotations_json_string(source_path)
     with open(target_path, 'w') as f:
         json.dump(results, f, sort_keys=True, indent=4)

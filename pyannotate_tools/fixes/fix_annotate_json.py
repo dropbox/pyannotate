@@ -26,7 +26,7 @@ from lib2to3.fixer_util import syms, touch_import
 from lib2to3.pgen2 import token
 from lib2to3.pytree import Base, Leaf, Node
 from typing import __all__ as typing_all  # type: ignore
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 try:
     from typing import Text
 except ImportError:
@@ -185,12 +185,17 @@ class FixAnnotateJson(FixAnnotate):
 
     stub_json_file = os.getenv('TYPE_COLLECTION_JSON')
     # JSON data for the current file
-    stub_json = None  # type: List[Dict[str, Union[str, int]]]
+    stub_json = None  # type: List[Dict[str, Any]]
+
+    @classmethod
+    def init_stub_json_from_data(cls, data, filename):
+        cls.stub_json = data
+        cls.top_dir, _ = crawl_up(os.path.abspath(filename))
 
     def init_stub_json(self):
         with open(self.__class__.stub_json_file) as f:
-            self.__class__.stub_json = json.load(f)
-            self.__class__.top_dir, _ = crawl_up(os.path.abspath(self.filename))
+            data = json.load(f)
+        self.__class__.init_stub_json_from_data(data, self.filename)
 
     def get_annotation_from_stub(self, node, results, funcname):
         if not self.__class__.stub_json:

@@ -2,11 +2,12 @@ from __future__ import print_function
 
 import argparse
 import logging
-import tempfile
 
 from lib2to3.main import StdoutRefactoringTool
 
-from pyannotate_tools.annotations.main import generate_annotations_json
+from typing import Any, Dict, List, Optional
+
+from pyannotate_tools.annotations.main import generate_annotations_json_string
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
 
 parser = argparse.ArgumentParser()
@@ -26,10 +27,10 @@ parser.add_argument('files', nargs='*',
                     help="Files and directories to update with annotations")
 
 
-def main():
-    # type: () -> None
+def main(args_override=None):
+    # type: (Optional[List[str]]) -> None
     # Parse command line.
-    args = parser.parse_args()
+    args = parser.parse_args(args_override)
     if not args.files:
         parser.error("At least one file/directory is required")
 
@@ -37,15 +38,12 @@ def main():
     level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format='%(message)s', level=level)
 
-    # Set up temporary file for pass 2 -> pass 3.
-    tf = tempfile.NamedTemporaryFile()
-
-    # Run pass 2 with output written to a temporary file.
+    # Run pass 2 with output into a variable.
     infile = args.type_info
-    generate_annotations_json(infile, tf.name)
+    data = generate_annotations_json_string(infile)  # type: List[Any]
 
-    # Run pass 3 reading from a temporary file.
-    FixAnnotateJson.stub_json_file = tf.name
+    # Run pass 3 with input from that variable.
+    FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
     fixers = ['pyannotate_tools.fixes.fix_annotate_json']
     flags = {'print_function': args.print_function}
     rt = StdoutRefactoringTool(
