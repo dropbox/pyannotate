@@ -5,7 +5,7 @@ import logging
 
 from lib2to3.main import StdoutRefactoringTool
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from pyannotate_tools.annotations.main import generate_annotations_json_string
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
@@ -27,10 +27,10 @@ parser.add_argument('files', nargs='*',
                     help="Files and directories to update with annotations")
 
 
-def main():
-    # type: () -> None
+def main(args_override=None):
+    # type: (Optional[List[str]]) -> None
     # Parse command line.
-    args = parser.parse_args()
+    args = parser.parse_args(args_override)
     if not args.files:
         parser.error("At least one file/directory is required")
 
