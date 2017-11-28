@@ -71,6 +71,13 @@ class TestInfer(unittest.TestCase):
                            ([(ClassType('Dict', [ClassType('str'), AnyType()]), ARG_POS)],
                             ClassType('None')))
 
+    def test_remove_redundant_dict_item_when_simplified(self):
+        # type: () -> None
+        self.assert_infer(['(Dict[str, Any]) -> None',
+                            '(Dict[str, Union[str, List, Dict, int]]) -> None'],
+                            ([(ClassType('Dict', [ClassType('str'), AnyType()]), ARG_POS)],
+                            ClassType('None')))
+
     def test_simplify_list_item_types(self):
         # type: () -> None
         self.assert_infer(['(List[Union[bool, int]]) -> None'],
@@ -114,6 +121,13 @@ class TestInfer(unittest.TestCase):
                            '(str) -> None'],
                            ([(ClassType('str'), ARG_POS)],
                             ClassType('None')))
+
+    def test_infer_ignore_mock_fallback_to_any(self):
+        # type: () -> None
+        self.assert_infer(['(mock.mock.Mock) -> str',
+                           '(mock.mock.Mock) -> int'],
+                           ([(AnyType(), ARG_POS)],
+                            UnionType([ClassType('str'), ClassType('int')])))
 
 CT = ClassType
 
