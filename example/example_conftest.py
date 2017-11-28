@@ -2,9 +2,18 @@
 # Thanks to Guilherme Salgado.
 
 import pytest
-from pyannotate_runtime import collect_types
 
-collect_types.init_types_collection()
+
+def pytest_collection_finish(session):
+    """Handle the pytest collection finish hook: configure pyannotate.
+
+    Explicitly delay importing `collect_types` all tests have been collected.
+    This gives gevent a chance to monkey patch the world before importing
+    pyannotate.
+    """
+    global collect_types
+    from pyannotate_runtime import collect_types
+    collect_types.init_types_collection()
 
 
 @pytest.fixture(autouse=True)
