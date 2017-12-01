@@ -1,4 +1,5 @@
 import contextlib
+import os
 import tempfile
 import textwrap
 import unittest
@@ -26,11 +27,12 @@ class TestMain(unittest.TestCase):
             }
         ]
         """
-        target = tempfile.NamedTemporaryFile(mode='r')
-        with self.temporary_json_file(data) as source_path:
-            generate_annotations_json(source_path, target.name)
+        with self.temporary_file() as target_path:
+            with self.temporary_json_file(data) as source_path:
+                generate_annotations_json(source_path, target_path)
+            with open(target_path) as target:
+                actual = target.read()
 
-        actual = target.read()
         actual = actual.replace(' \n', '\n')
         expected = textwrap.dedent("""\
             [
@@ -110,7 +112,23 @@ class TestMain(unittest.TestCase):
     @contextlib.contextmanager
     def temporary_json_file(self, data):
         # type: (str) -> Iterator[str]
-        with tempfile.NamedTemporaryFile(mode='w') as source:
-            source.write(data)
-            source.flush()
+        source = None
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as source:
+                source.write(data)
             yield source.name
+        finally:
+            if source is not None:
+                os.remove(source.name)
+
+    @contextlib.contextmanager
+    def temporary_file(self):
+        # type: () -> Iterator[str]
+        target = None
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as target:
+                pass
+            yield target.name
+        finally:
+            if target is not None:
+                os.remove(target.name)
