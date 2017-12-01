@@ -22,17 +22,15 @@ from pyannotate_tools.annotations.__main__ import main as dunder_main
 class TestDunderMain(unittest.TestCase):
     def setUp(self):
         # type: () -> None
-        self.tempdir = tempfile.gettempdir()
+        self.tempdir = tempfile.TemporaryDirectory()
         self.tempfiles = []  # type: List[str]
         self.olddir = os.getcwd()
-        os.chdir(self.tempdir)
+        os.chdir(self.tempdir.name)
 
     def tearDown(self):
         # type: () -> None
-        for tfn in reversed(self.tempfiles):
-            if os.path.isfile(tfn):
-                os.remove(tfn)
         os.chdir(self.olddir)
+        self.tempdir.cleanup()
 
     def write_file(self, name, data):
         # type: (str, str) -> None
