@@ -2,6 +2,7 @@
 # Our flake extension misfires on type comments in strings below.
 
 import json
+import os
 import tempfile
 
 from lib2to3.tests.test_fixers import FixerTestCase
@@ -16,7 +17,8 @@ class TestFixAnnotateJson(FixerTestCase):
             fix_list=["annotate_json"],
             fixer_pkg="pyannotate_tools",
         )
-        self.tf = tempfile.NamedTemporaryFile(mode='w+')
+        # See https://bugs.python.org/issue14243 for details
+        self.tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
         FixAnnotateJson.stub_json_file = self.tf.name
         FixAnnotateJson.stub_json = None
 
@@ -24,11 +26,12 @@ class TestFixAnnotateJson(FixerTestCase):
         FixAnnotateJson.stub_json = None
         FixAnnotateJson.stub_json_file = None
         self.tf.close()
+        os.remove(self.tf.name)
         super(TestFixAnnotateJson, self).tearDown()
 
     def setTestData(self, data):
         json.dump(data, self.tf)
-        self.tf.flush()
+        self.tf.close()
         self.filename = data[0]["path"]
 
     def test_basic(self):

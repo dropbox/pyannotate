@@ -1,0 +1,13 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python36-x64"
+
+build: off
+
+install:
+    - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+    - "%PYTHON%\\python.exe -m pip list"
+
+test_script:
+    - "%PYTHON%\\python.exe -m pytest"

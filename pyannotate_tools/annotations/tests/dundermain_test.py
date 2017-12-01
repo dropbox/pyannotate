@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import unittest
@@ -22,17 +23,15 @@ from pyannotate_tools.annotations.__main__ import main as dunder_main
 class TestDunderMain(unittest.TestCase):
     def setUp(self):
         # type: () -> None
-        self.tempdir = tempfile.gettempdir()
+        self.tempdirname = tempfile.mkdtemp()
         self.tempfiles = []  # type: List[str]
         self.olddir = os.getcwd()
-        os.chdir(self.tempdir)
+        os.chdir(self.tempdirname)
 
     def tearDown(self):
         # type: () -> None
-        for tfn in reversed(self.tempfiles):
-            if os.path.isfile(tfn):
-                os.remove(tfn)
         os.chdir(self.olddir)
+        shutil.rmtree(self.tempdirname)
 
     def write_file(self, name, data):
         # type: (str, str) -> None

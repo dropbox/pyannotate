@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 
@@ -40,11 +41,14 @@ class TestParseJson(unittest.TestCase):
             }
         ]
         """
-        with tempfile.NamedTemporaryFile(mode='w') as f:
-            f.write(data)
-            f.flush()
-
+        f = None
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+                f.write(data)
             result = parse_json(f.name)
+        finally:
+            if f is not None:
+                os.remove(f.name)
         assert len(result) == 1
         item = result[0]
         assert item.path == 'pkg/thing.py'
