@@ -448,7 +448,7 @@ def resolve_type(arg):
         assert isinstance(arg, tuple)  # this line helps mypy figure out types
         sample = list(arg[:min(10, len(arg))])
         return TupleType([resolve_type(sample_item) for sample_item in sample])
-    elif arg_type == dict:
+    elif arg_type in {dict, collections.defaultdict, collections.OrderedDict}:
         assert isinstance(arg, dict)  # this line helps mypy figure out types
         key_tt = TentativeType()
         val_tt = TentativeType()
