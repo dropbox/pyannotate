@@ -350,9 +350,10 @@ def name_from_type(type_):
     else:
         if type_.__name__ != 'NoneType':
             module = type_.__module__
-            if module in BUILTIN_MODULES:
+            if module in BUILTIN_MODULES or module == '<unknown>':
                 # Omit module prefix for known built-ins, for convenience. This
                 # makes unit tests for this module simpler.
+                # Also ignore '<uknown>' modules so pyannotate can parse these types
                 return type_.__name__
             else:
                 return '%s.%s' % (module, type_.__name__)
