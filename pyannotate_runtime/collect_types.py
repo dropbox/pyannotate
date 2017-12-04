@@ -682,13 +682,15 @@ def resume():
 
 
 def default_filter_filename(filename):
-    # type: (str) -> Optional[str]
+    # type: (Optional[str]) -> Optional[str]
     """Default filter for filenames.
 
     Returns either a normalized filename or None.
     You can pass your own filter to init_types_collection().
     """
-    if filename.startswith(TOP_DIR):
+    if filename is None:
+        return None
+    elif filename.startswith(TOP_DIR):
         if filename.startswith(TOP_DIR_DOT):
             # Skip subdirectories starting with dot (e.g. .vagrant).
             return None
@@ -702,7 +704,7 @@ def default_filter_filename(filename):
         return filename
 
 
-_filter_filename = default_filter_filename  # type: Callable[[str], Optional[str]]
+_filter_filename = default_filter_filename  # type: Callable[[Optional[str]], Optional[str]]
 
 
 def _trace_dispatch(frame, event, arg):
@@ -832,7 +834,7 @@ def dumps_stats():
 
 
 def init_types_collection(filter_filename=default_filter_filename):
-    # type: (Callable[[str], Optional[str]]) -> None
+    # type: (Callable[[Optional[str]], Optional[str]]) -> None
     """
     Setup profiler hooks to enable type collection.
     Call this one time from the main thread.

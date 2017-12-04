@@ -588,11 +588,11 @@ def foo(arg):
 class TestInitWithFilter(TestBaseClass):
 
     def always_foo(self, filename):
-        # type: (str) -> Optional[str]
+        # type: (Optional[str]) -> Optional[str]
         return 'foo.py'
 
     def always_none(self, filename):
-        # type: (str) -> Optional[str]
+        # type: (Optional[str]) -> Optional[str]
         return None
 
     def test_init_with_filter(self):
