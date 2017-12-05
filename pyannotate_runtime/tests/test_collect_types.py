@@ -588,7 +588,7 @@ class TestCollectTypes(TestBaseClass):
         with self.collecting_types():
             ns = {
                 '__name__': '<unknown>'
-            }
+            }   # type: Dict[str, Any]
             exec('class C(object): pass', ns)
 
             func_with_unknown_module_types(ns['C']())
