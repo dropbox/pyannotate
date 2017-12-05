@@ -579,6 +579,22 @@ class TestCollectTypes(TestBaseClass):
             (lambda x, y: x+y)(0, 0)
         assert self.stats == []
 
+    def test_unknown_module_types(self):
+        # type: () -> None
+        def func_with_unknown_module_types(c):
+            # type: (Any) -> Any
+            return c
+
+        with self.collecting_types():
+            ns = {
+                '__name__': '<unknown>'
+            }   # type: Dict[str, Any]
+            exec('class C(object): pass', ns)
+
+            func_with_unknown_module_types(ns['C']())
+
+        self.assert_type_comments('func_with_unknown_module_types', ['(C) -> C'])
+
 
 def foo(arg):
     # type: (Any) -> Any
