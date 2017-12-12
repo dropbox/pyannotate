@@ -6,6 +6,8 @@ return types observed at runtime.
 
 For license and copyright see the end of this file.
 
+Blog post: http://mypy-lang.blogspot.com/2017/11/dropbox-releases-pyannotate-auto.html
+
 How to use
 ==========
 
@@ -18,7 +20,7 @@ Phase 1: Collecting types at runtime
 - Add `from pyannotate_runtime import collect_types` to your test
 - Early in your test setup, call `collect_types.init_types_collection()`
 - Bracket your test code between calls to `collect_types.resume()` and
-  `collect_types.pause()`
+  `collect_types.pause()` (or use the context manager below)
 - When done, call `collect_types.dump_stats(filename)`
 
 All calls between the `pause()` and `resume()` calls will be analyzed
@@ -28,6 +30,15 @@ per dump call.
 
 If you'd like to automatically collect types when you run `pytest`,
 see `example/example_conftest.py` and `example/README.md`.
+
+Instead of using `resume()` and `pause()` you can also use a context
+manager:
+```
+collect_types.init_types_collection()
+with collect_types.collect():
+    <your code here>
+collect_types.dump_stats(<filename>)
+```
 
 Phase 2: Inserting types into your source code
 ----------------------------------------------
