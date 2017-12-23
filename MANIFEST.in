@@ -8,5 +8,3 @@ include setup.py
 include setup.cfg
 include mypy.ini
 include requirements.txt
-include appveyor.yml
-include .travis.yml
