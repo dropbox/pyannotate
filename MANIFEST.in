@@ -1,7 +1,7 @@
 graft example
 graft pyannotate_tools
 graft pyannotate_runtime
-imclude README.md
+include README.md
 include CONTRIBUTING.md
 include LICENSE
 include setup.py
