@@ -8,3 +8,8 @@ include setup.py
 include setup.cfg
 include mypy.ini
 include requirements.txt
+global-exclude @*
+global-exclude *~
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.json
