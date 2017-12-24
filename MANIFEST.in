@@ -1,0 +1,14 @@
+graft example
+graft pyannotate_tools
+graft pyannotate_runtime
+include README.md
+include CONTRIBUTING.md
+include LICENSE
+include setup.py
+include setup.cfg
+include mypy.ini
+include requirements.txt
+global-exclude @*
+global-exclude *~
+global-exclude *.pyc
+global-exclude *.json
