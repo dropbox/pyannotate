@@ -55,7 +55,7 @@ TYPE_FIXUPS = {
     'mappingproxy': 'Mapping',
     'file': 'IO[bytes]',
     'instance': 'Any',
-    'defaultdict': 'dict',
+    'collections.defaultdict': 'Dict',
 }
 
 
