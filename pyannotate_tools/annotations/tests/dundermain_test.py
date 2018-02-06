@@ -54,6 +54,17 @@ class TestDunderMain(unittest.TestCase):
             lines = [line.strip() for line in f.readlines()]
         assert '# type: (int, int) -> int' in lines
 
+    def test_bad_encoding_message(self):
+        # type: () -> None
+        source_text = "# coding: unknownencoding\ndef f():\n  pass\n"
+        self.write_file('gcd.py', source_text)
+        self.write_file('type_info.json', '[]')
+        encoding_message = "Can't parse gcd.py: unknown encoding: unknownencoding"
+        self.main_test(['gcd.py'],
+                       r'\A\Z',
+                       r'\A' + re.escape(encoding_message),
+                       0)
+
     def prototype_test(self, write):
         # type: (bool) -> None
         type_info = [

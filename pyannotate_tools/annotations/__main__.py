@@ -27,6 +27,20 @@ parser.add_argument('files', nargs='*',
                     help="Files and directories to update with annotations")
 
 
+class ModifiedRefactoringTool(StdoutRefactoringTool):
+    """Class that gives a nicer error message for bad encodings."""
+
+    def refactor_file(self, filename, write=False, doctests_only=False):
+        try:
+            super(ModifiedRefactoringTool, self).refactor_file(
+                filename, write=write, doctests_only=doctests_only)
+        except SyntaxError as err:
+            if str(err).startswith("unknown encoding:"):
+                self.log_error("Can't parse %s: %s", filename, err)
+            else:
+                raise
+
+
 def main(args_override=None):
     # type: (Optional[List[str]]) -> None
     # Parse command line.
@@ -46,7 +60,7 @@ def main(args_override=None):
     FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
     fixers = ['pyannotate_tools.fixes.fix_annotate_json']
     flags = {'print_function': args.print_function}
-    rt = StdoutRefactoringTool(
+    rt = ModifiedRefactoringTool(
         fixers=fixers,
         options=flags,
         explicit=fixers,
