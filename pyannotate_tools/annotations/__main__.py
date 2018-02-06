@@ -1,13 +1,15 @@
 from __future__ import print_function
 
 import argparse
+import json
 import logging
+import os
 
 from lib2to3.main import StdoutRefactoringTool
 
 from typing import Any, Dict, List, Optional
 
-from pyannotate_tools.annotations.main import generate_annotations_json_string
+from pyannotate_tools.annotations.main import generate_annotations_json_string, unify_type_comments
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
 
 parser = argparse.ArgumentParser()
@@ -23,7 +25,9 @@ parser.add_argument('-v', '--verbose', action='store_true',
                     help="More verbose output")
 parser.add_argument('-q', '--quiet', action='store_true',
                     help="Don't show diffs")
-parser.add_argument('files', nargs='*',
+parser.add_argument('-d', '--dump', action='store_true',
+                    help="Dump raw type annotations (filter by files, default all)")
+parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
 
 
@@ -41,16 +45,45 @@ class ModifiedRefactoringTool(StdoutRefactoringTool):
                 raise
 
 
+def dump_annotations(type_info, files):
+    """Dump annotations out of type_info, filtered by files.
+
+    If files is non-empty, only dump items either if the path in the
+    item matches one of the files exactly, or else if one of the files
+    is a path prefix of the path.
+    """
+    with open(type_info) as f:
+        data = json.load(f)
+    for item in data:
+        path, line, func_name = item['path'], item['line'], item['func_name']
+        if files and path not in files:
+            for f in files:
+                if path.startswith(os.path.join(f, '')):
+                    break
+            else:
+                continue  # Outer loop
+        print("%s:%d: in %s:" % (path, line, func_name))
+        type_comments = item['type_comments']
+        signature = unify_type_comments(type_comments)
+        arg_types = signature['arg_types']
+        return_type = signature['return_type']
+        print("    # type: (%s) -> %s" % (", ".join(arg_types), return_type))
+
+
 def main(args_override=None):
     # type: (Optional[List[str]]) -> None
     # Parse command line.
     args = parser.parse_args(args_override)
-    if not args.files:
+    if not args.files and not args.dump:
         parser.error("At least one file/directory is required")
 
     # Set up logging handler.
     level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format='%(message)s', level=level)
+
+    if args.dump:
+        dump_annotations(args.type_info, args.files)
+        return
 
     # Run pass 2 with output into a variable.
     infile = args.type_info

@@ -22,6 +22,23 @@ FunctionData = TypedDict('FunctionData', {'path': str,
                                           'samples': int})
 
 
+def unify_type_comments(type_comments):
+    # type: (List[str]) -> Signature
+    arg_types, return_type = infer_annotation(type_comments)
+    arg_strs = []
+    for arg, kind in arg_types:
+        arg_str = str(arg)
+        if kind == ARG_STAR:
+            arg_str = '*%s' % arg_str
+        elif kind == ARG_STARSTAR:
+            arg_str = '**%s' % arg_str
+        arg_strs.append(arg_str)
+    return {
+        'arg_types': arg_strs,
+        'return_type': str(return_type),
+    }
+
+
 def generate_annotations_json_string(source_path):
     # type: (str) -> List[FunctionData]
     """Produce annotation data JSON file from a JSON file with runtime-collected types.
@@ -34,19 +51,7 @@ def generate_annotations_json_string(source_path):
     items = parse_json(source_path)
     results = []
     for item in items:
-        arg_types, return_type = infer_annotation(item.type_comments)
-        arg_strs = []
-        for arg, kind in arg_types:
-            arg_str = str(arg)
-            if kind == ARG_STAR:
-                arg_str = '*%s' % arg_str
-            elif kind == ARG_STARSTAR:
-                arg_str = '**%s' % arg_str
-            arg_strs.append(arg_str)
-        signature = {
-            'arg_types': arg_strs,
-            'return_type': str(return_type),
-        }  # type: Signature
+        signature = unify_type_comments(item.type_comments)
         data = {
             'path': item.path,
             'line': item.line,
