@@ -328,3 +328,52 @@ class TestFixAnnotate(FixerTestCase):
                 return
             """
         self.check(a, b)
+
+    def test_idempotency_long_1arg(self):
+        a = """\
+            def nop(a  # type: int
+                    ):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_long_1arg_comma(self):
+        a = """\
+            def nop(a,  # type: int
+                    ):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_long_2args_first(self):
+        a = """\
+            def nop(a,  # type: int
+                    b):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_long_2args_last(self):
+        a = """\
+            def nop(a,
+                    b  # type: int
+                    ):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_long_varargs(self):
+        a = """\
+            def nop(*a  # type: int
+                    ):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_long_kwargs(self):
+        a = """\
+            def nop(**a  # type: int
+                    ):
+                pass
+            """
+        self.unchanged(a)

@@ -46,7 +46,7 @@ class FixAnnotate(BaseFix):
 
     # The pattern to match.
     PATTERN = """
-              funcdef< 'def' name=any parameters< '(' [args=any] ')' > ':' suite=any+ >
+              funcdef< 'def' name=any parameters=parameters< '(' [args=any] ')' > ':' suite=any+ >
               """
 
     _maxfixes = os.getenv('MAXFIXES')
@@ -56,6 +56,19 @@ class FixAnnotate(BaseFix):
         if FixAnnotate.counter is not None:
             if FixAnnotate.counter <= 0:
                 return
+
+        # Check if there's already a long-form annotation for some argument.
+        parameters = results.get('parameters')
+        if parameters is not None:
+            for ch in parameters.pre_order():
+                if ch.prefix.lstrip().startswith('# type:'):
+                    return
+        args = results.get('args')
+        if args is not None:
+            for ch in args.pre_order():
+                if ch.prefix.lstrip().startswith('# type:'):
+                    return
+
         suite = results['suite']
         children = suite[0].children
 
@@ -72,11 +85,6 @@ class FixAnnotate(BaseFix):
         #
         # "Compact" functions (e.g. "def foo(x, y): return max(x, y)")
         # have a different structure that isn't matched by PATTERN.
-
-        ## print('-'*60)
-        ## print(node)
-        ## for i, ch in enumerate(children):
-        ##     print(i, repr(ch.prefix), repr(ch))
 
         # Check if there's already an annotation.
         for ch in children:
