@@ -779,6 +779,7 @@ def _trace_dispatch(frame, event, arg):
             elif event == 'return':
                 # This event is also triggered if a function raises an exception.
                 # We can tell the difference by looking at the bytecode.
+                # (We don't get here for C functions so the bytecode always exists.)
                 # TODO: Also recognize YIELD_VALUE opcode.
                 last_opcode = code.co_code[frame.f_lasti]
                 if last_opcode != RETURN_VALUE_OPCODE:

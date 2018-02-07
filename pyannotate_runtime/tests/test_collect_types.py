@@ -427,7 +427,6 @@ class TestCollectTypes(TestBaseClass):
                 func_sometimes_fail(0)
             except Exception:
                 pass
-        # TODO(jukka): An unknown return type (or Any) would be better than None.
         self.assert_type_comments('func_always_fail', ['(int) -> pyannotate_runtime.collect_types.NoReturnType',
                                                        '(str) -> pyannotate_runtime.collect_types.NoReturnType'])
         self.assert_type_comments('func_sometimes_fail', ['(int) -> pyannotate_runtime.collect_types.NoReturnType',
