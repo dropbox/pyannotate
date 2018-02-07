@@ -41,11 +41,13 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Iterable,
     Iterator,
     List,
     NamedTuple,
     Optional,
     Set,
+    Sized,
     Tuple,
     TypeVar,
     Union,
@@ -53,6 +55,8 @@ from typing import (
 from contextlib import contextmanager
 
 # pylint: disable=invalid-name
+
+CO_GENERATOR = inspect.CO_GENERATOR  # type: ignore
 
 
 def _my_hash(arg_list):
@@ -84,8 +88,30 @@ class TypeWasIncomparable(object):
     pass
 
 
+class FakeIterator(Iterable[Any], Sized):
+    """
+    Container for iterator values.
+
+    Note that FakeIterator([a, b, c]) is akin to list([a, b, c]); this
+    is turned into IteratorType by resolve_type().
+    """
+
+    def __init__(self, values):
+        # type: (List[Any]) -> None
+        self.values = values
+
+    def __iter__(self):
+        # type: () -> Iterator[Any]
+        for v in self.values:
+            yield v
+
+    def __len__(self):
+        # type: () -> int
+        return len(self.values)
+
+
 _NONE_TYPE = type(None)
-InternalType = Union['DictType', 'ListType', 'TupleType', 'SetType', 'type']
+InternalType = Union['DictType', 'ListType', 'TupleType', 'SetType', 'IteratorType', 'type']
 
 
 class DictType(object):
@@ -188,6 +214,39 @@ class SetType(object):
         return not self.__eq__(other)
 
 
+class IteratorType(object):
+    """
+    Internal representation of Iterator type.
+    """
+
+    def __init__(self, val_type):
+        # type: (TentativeType) -> None
+        self.val_type = val_type
+
+    def __repr__(self):
+        # type: () -> str
+        if repr(self.val_type) == 'None':
+            # We didn't see any values, so we don't know what's inside
+            return 'Iterator'
+        else:
+            return 'Iterator[%s]' % (repr(self.val_type))
+
+    def __hash__(self):
+        # type: () -> int
+        return hash(self.val_type) if self.val_type else 0
+
+    def __eq__(self, other):
+        # type: (object) -> bool
+        if not isinstance(other, IteratorType):
+            return False
+
+        return self.val_type == other.val_type
+
+    def __ne__(self, other):
+        # type: (object) -> bool
+        return not self.__eq__(other)
+
+
 class TupleType(object):
     """
     Internal representation of Tuple type.
@@ -279,6 +338,9 @@ class TentativeType(object):
             elif isinstance(type, ListType):
                 if EMPTY_LIST_TYPE in self.types_hashable:
                     self.types_hashable.remove(EMPTY_LIST_TYPE)
+            elif isinstance(type, IteratorType):
+                if EMPTY_ITERATOR_TYPE in self.types_hashable:
+                    self.types_hashable.remove(EMPTY_ITERATOR_TYPE)
             elif isinstance(type, DictType):
                 if EMPTY_DICT_TYPE in self.types_hashable:
                     self.types_hashable.remove(EMPTY_DICT_TYPE)
@@ -350,7 +412,7 @@ def name_from_type(type_):
     """
     Helper function to get PEP-484 compatible string representation of our internal types.
     """
-    if isinstance(type_, (DictType, ListType, TupleType, SetType)):
+    if isinstance(type_, (DictType, ListType, TupleType, SetType, IteratorType)):
         return repr(type_)
     else:
         if type_.__name__ != 'NoneType':
@@ -369,6 +431,7 @@ def name_from_type(type_):
 EMPTY_DICT_TYPE = DictType(TentativeType(), TentativeType())
 EMPTY_LIST_TYPE = ListType(TentativeType())
 EMPTY_SET_TYPE = SetType(TentativeType())
+EMPTY_ITERATOR_TYPE = IteratorType(TentativeType())
 
 
 # TODO: Make this faster
@@ -450,6 +513,16 @@ def resolve_type(arg):
         for sample_item in sample:
             tentative_type.add(resolve_type(sample_item))
         return SetType(tentative_type)
+    elif arg_type == FakeIterator:
+        assert isinstance(arg, FakeIterator)  # this line helps mypy figure out types
+        sample = []
+        iterator = iter(arg)
+        for i in range(0, min(4, len(arg))):
+            sample.append(next(iterator))
+        tentative_type = TentativeType()
+        for sample_item in sample:
+            tentative_type.add(resolve_type(sample_item))
+        return IteratorType(tentative_type)
     elif arg_type == tuple:
         assert isinstance(arg, tuple)  # this line helps mypy figure out types
         sample = list(arg[:min(10, len(arg))])
@@ -715,8 +788,10 @@ _filter_filename = default_filter_filename  # type: Callable[[Optional[str]], Op
 
 if sys.version_info[0] == 2:
     RETURN_VALUE_OPCODE = chr(opcode.opmap['RETURN_VALUE'])
+    YIELD_VALUE_OPCODE = chr(opcode.opmap['YIELD_VALUE'])
 else:
     RETURN_VALUE_OPCODE = opcode.opmap['RETURN_VALUE']
+    YIELD_VALUE_OPCODE = opcode.opmap['YIELD_VALUE']
 
 
 def _trace_dispatch(frame, event, arg):
@@ -777,14 +852,25 @@ def _trace_dispatch(frame, event, arg):
                 resolved_types = prep_args(arg_info)
                 _task_queue.put(KeyAndTypes(function_key, resolved_types))
             elif event == 'return':
-                # This event is also triggered if a function raises an exception.
+                # This event is also triggered if a function yields or raises an exception.
                 # We can tell the difference by looking at the bytecode.
                 # (We don't get here for C functions so the bytecode always exists.)
-                # TODO: Also recognize YIELD_VALUE opcode.
                 last_opcode = code.co_code[frame.f_lasti]
-                if last_opcode != RETURN_VALUE_OPCODE:
-                    arg = NoReturnType()
-                _task_queue.put(KeyAndReturn(function_key, resolve_type(arg)))
+                if last_opcode == RETURN_VALUE_OPCODE:
+                    if code.co_flags & CO_GENERATOR:
+                        # Return from a generator.
+                        t = NoReturnType  # type: InternalType
+                    else:
+                        t = resolve_type(arg)
+                elif last_opcode == YIELD_VALUE_OPCODE:
+                    # Yield from a generator.
+                    t = resolve_type(FakeIterator([arg]))
+                else:
+                    # This branch is also taken when returning from a generator.
+                    # TODO: returning non-trivial values from generators, per PEP 380;
+                    # and async def / await stuff.
+                    t = NoReturnType
+                _task_queue.put(KeyAndReturn(function_key, t))
     else:
         sampling_counters[key] = None  # We're not interested in this function.
 
