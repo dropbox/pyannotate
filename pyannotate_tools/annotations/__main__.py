@@ -27,6 +27,8 @@ parser.add_argument('-q', '--quiet', action='store_true',
                     help="Don't show diffs")
 parser.add_argument('-d', '--dump', action='store_true',
                     help="Dump raw type annotations (filter by files, default all)")
+parser.add_argument('-a', '--auto-any', action='store_true',
+                    help="Annotate everything with 'Any', without reading type_info.json")
 parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
 
@@ -90,8 +92,11 @@ def main(args_override=None):
     data = generate_annotations_json_string(infile)  # type: List[Any]
 
     # Run pass 3 with input from that variable.
-    FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
-    fixers = ['pyannotate_tools.fixes.fix_annotate_json']
+    if args.auto_any:
+        fixers = ['pyannotate_tools.fixes.fix_annotate']
+    else:
+        FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
+        fixers = ['pyannotate_tools.fixes.fix_annotate_json']
     flags = {'print_function': args.print_function}
     rt = ModifiedRefactoringTool(
         fixers=fixers,
