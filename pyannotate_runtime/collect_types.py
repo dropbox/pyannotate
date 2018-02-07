@@ -859,7 +859,7 @@ def _trace_dispatch(frame, event, arg):
                 if last_opcode == RETURN_VALUE_OPCODE:
                     if code.co_flags & CO_GENERATOR:
                         # Return from a generator.
-                        t = NoReturnType  # type: InternalType
+                        t = resolve_type(FakeIterator([]))
                     else:
                         t = resolve_type(arg)
                 elif last_opcode == YIELD_VALUE_OPCODE:

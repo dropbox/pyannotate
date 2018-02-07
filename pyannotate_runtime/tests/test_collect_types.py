@@ -594,6 +594,43 @@ class TestCollectTypes(TestBaseClass):
 
         self.assert_type_comments('func_with_unknown_module_types', ['(C) -> C'])
 
+    def test_yield_basic(self):
+        # type: () -> None
+        def gen(n, a):
+            for i in range(n):
+                yield a
+
+        with self.collecting_types():
+            list(gen(10, 'x'))
+
+        self.assert_type_comments('gen', ['(int, str) -> Iterator[str]'])
+
+    def test_yield_various(self):
+        # type: () -> None
+        def gen(n, a, b):
+            for i in range(n):
+                yield a
+                yield b
+
+        with self.collecting_types():
+            list(gen(10, 'x', 1))
+            list(gen(0, 0, 0))
+
+        # TODO: Wish this could return Iterator[Union[int, str]]
+        self.assert_type_comments('gen', ['(int, str, int) -> Iterator[int]',
+                                          '(int, str, int) -> Iterator[str]'])
+
+    def test_yield_empty(self):
+        # type: () -> None
+        def gen():
+            if False:
+                yield
+
+        with self.collecting_types():
+            list(gen())
+
+        self.assert_type_comments('gen', ['() -> Iterator'])
+
 
 def foo(arg):
     # type: (Any) -> Any
