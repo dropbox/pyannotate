@@ -26,6 +26,7 @@ from __future__ import (
 import collections
 import inspect
 import json
+import opcode
 import os
 import sys
 import threading
@@ -72,6 +73,10 @@ FunctionData = TypedDict('FunctionData', {'path': str,
 
 
 class UnknownType(object):
+    pass
+
+
+class NoReturnType(object):
     pass
 
 
@@ -708,6 +713,12 @@ def default_filter_filename(filename):
 _filter_filename = default_filter_filename  # type: Callable[[Optional[str]], Optional[str]]
 
 
+if sys.version_info[0] == 2:
+    RETURN_VALUE_OPCODE = chr(opcode.opmap['RETURN_VALUE'])
+else:
+    RETURN_VALUE_OPCODE = opcode.opmap['RETURN_VALUE']
+
+
 def _trace_dispatch(frame, event, arg):
     # type: (Any, str, Optional[Any]) -> None
     """
@@ -766,10 +777,12 @@ def _trace_dispatch(frame, event, arg):
                 resolved_types = prep_args(arg_info)
                 _task_queue.put(KeyAndTypes(function_key, resolved_types))
             elif event == 'return':
-                # This event is also triggered if a function raises an exception,
-                # and in this case the return value is 'None'.  There doesn't seem
-                # to be a way to distinguish an exception from a None return,
-                # unfortunately.
+                # This event is also triggered if a function raises an exception.
+                # We can tell the difference by looking at the bytecode.
+                # TODO: Also recognize YIELD_VALUE opcode.
+                last_opcode = code.co_code[frame.f_lasti]
+                if last_opcode != RETURN_VALUE_OPCODE:
+                    arg = NoReturnType()
                 _task_queue.put(KeyAndReturn(function_key, resolve_type(arg)))
     else:
         sampling_counters[key] = None  # We're not interested in this function.
