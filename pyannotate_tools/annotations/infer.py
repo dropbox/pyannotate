@@ -15,6 +15,7 @@ from pyannotate_tools.annotations.types import (
     is_optional,
     TupleType,
     UnionType,
+    NoReturnType,
 )
 
 IGNORED_ITEMS = {
@@ -225,6 +226,10 @@ def merged_type(t, s):
             return s
     elif isinstance(s, TupleType) and isinstance(t, ClassType) and t.name == 'Tuple':
         return merged_type(s, t)
+    elif isinstance(s, NoReturnType):
+        return t
+    elif isinstance(t, NoReturnType):
+        return s
     elif isinstance(s, AnyType):
         # This seems to be usually desirable, since Anys tend to come from unknown types.
         return t
