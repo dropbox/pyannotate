@@ -52,6 +52,22 @@ class AnyType(AbstractType):
         return hash('Any')
 
 
+class NoReturnType(AbstractType):
+    """The type mypy_extensions.NoReturn"""
+
+    def __repr__(self):
+        # type: () -> str
+        return 'mypy_extensions.NoReturn'
+
+    def __eq__(self, other):
+        # type: (object) -> bool
+        return isinstance(other, NoReturnType)
+
+    def __hash__(self):
+        # type: () -> int
+        return hash('NoReturn')
+
+
 class TupleType(AbstractType):
     """Fixed-length tuple Tuple[x, ..., y]"""
 

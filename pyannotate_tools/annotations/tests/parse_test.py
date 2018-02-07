@@ -15,6 +15,7 @@ from pyannotate_tools.annotations.types import (
     ClassType,
     TupleType,
     UnionType,
+    NoReturnType,
 )
 
 
@@ -122,6 +123,11 @@ class TestParseTypeComment(unittest.TestCase):
         # type: () -> None
         self.assert_type_comment('(Any) -> pyannotate_runtime.collect_types.UnknownType',
                                  ([any_arg()], AnyType()))
+
+    def test_no_return(self):
+        # type: () -> None
+        self.assert_type_comment('() -> pyannotate_runtime.collect_types.NoReturnType',
+                                 ([], NoReturnType()))
 
     def test_tuple(self):
         # type: () -> None

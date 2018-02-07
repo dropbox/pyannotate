@@ -16,6 +16,7 @@ from pyannotate_tools.annotations.types import (
     ClassType,
     TupleType,
     UnionType,
+    NoReturnType,
 )
 
 
@@ -195,6 +196,11 @@ class TestMergeUnionItems(unittest.TestCase):
             TupleType([CT('str')]),
             TupleType([CT('str'), CT('int')])]) == [TupleType([CT('str')]),
                                                     TupleType([CT('str'), CT('int')])]
+
+    def test_merge_union_containing_no_return(self):
+        # type: () -> None
+        assert merge_items([CT('int'), NoReturnType()]) == [CT('int')]
+        assert merge_items([NoReturnType(), CT('int')]) == [CT('int')]
 
 
 class TestFlattenTypes(unittest.TestCase):

@@ -27,6 +27,7 @@ from pyannotate_tools.annotations.types import (
     ClassType,
     TupleType,
     UnionType,
+    NoReturnType,
 )
 
 PY2 = sys.version_info < (3,)
@@ -41,6 +42,7 @@ TYPE_FIXUPS = {
     'dictionary-valueiterator': 'Iterator',
     'dictionary-itemiterator': 'Iterator',
     'pyannotate_runtime.collect_types.UnknownType': 'Any',
+    'pyannotate_runtime.collect_types.NoReturnType': 'mypy_extensions.NoReturn',
     'function': 'Callable',
     'functools.partial': 'Callable',
     'long': 'int',
@@ -282,6 +284,8 @@ class Parser(object):
             self.fail()
         if t.text == 'Any':
             return AnyType()
+        elif t.text == 'mypy_extensions.NoReturn':
+            return NoReturnType()
         elif t.text == 'Tuple':
             self.expect('[')
             args = self.parse_type_list()
