@@ -620,3 +620,22 @@ class TestFixAnnotateJson(FixerTestCase):
                 return 0
             """
         self.check(a, b)
+
+    def test_one_liner(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 1,
+              "signature": {
+                  "arg_types": ["int"],
+                  "return_type": "int"},
+              }])
+        a = """\
+            def nop(a):   return a
+            """
+        b = """\
+            def nop(a):
+                # type: (int) -> int
+                return a
+            """
+        self.check(a, b)

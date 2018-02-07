@@ -30,7 +30,7 @@ import os
 import re
 
 from lib2to3.fixer_base import BaseFix
-from lib2to3.fixer_util import syms, touch_import
+from lib2to3.fixer_util import syms, touch_import, find_indentation
 from lib2to3.patcomp import compile_pattern
 from lib2to3.pgen2 import token
 from lib2to3.pytree import Leaf, Node
@@ -84,7 +84,7 @@ class FixAnnotate(BaseFix):
         # Comments before the suite are part of the INDENT's prefix.
         #
         # "Compact" functions (e.g. "def foo(x, y): return max(x, y)")
-        # have a different structure that isn't matched by PATTERN.
+        # have a different structure (no NEWLINE, INDENT, or DEDENT).
 
         # Check if there's already an annotation.
         for ch in children:
@@ -98,6 +98,12 @@ class FixAnnotate(BaseFix):
 
         # Insert '# type: {annot}' comment.
         # For reference, see lib2to3/fixes/fix_tuple_params.py in stdlib.
+        if len(children) >= 1 and children[0].type != token.NEWLINE:
+            if children[0].prefix.strip() == '':
+                children[0].prefix = ''
+                children.insert(0, Leaf(token.NEWLINE, '\n'))
+                children.insert(1, Leaf(token.INDENT, find_indentation(node) + '    '))
+                children.append(Leaf(token.DEDENT, ''))
         if len(children) >= 2 and children[1].type == token.INDENT:
             argtypes, restype = annot
             degen_str = '(...) -> %s' % restype

@@ -329,6 +329,26 @@ class TestFixAnnotate(FixerTestCase):
             """
         self.check(a, b)
 
+    def test_one_liner(self):
+        a = """\
+            class C:
+                def nop(self, a): a = a; return a
+                # Something
+            # More
+            pass
+            """
+        b = """\
+            from typing import Any
+            class C:
+                def nop(self, a):
+                    # type: (Any) -> Any
+                    a = a; return a
+                # Something
+            # More
+            pass
+            """
+        self.check(a, b)
+
     def test_idempotency_long_1arg(self):
         a = """\
             def nop(a  # type: int
