@@ -585,3 +585,38 @@ class TestFixAnnotateJson(FixerTestCase):
         a = a.replace('classmethod', 'staticmethod')
         b = b.replace('classmethod', 'staticmethod')
         self.check(a, b)
+
+    def test_long_form_trailing_comma(self):
+        self.maxDiff = None
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["int", "int", "int",
+                                "str", "str", "str",
+                                "Optional[bool]", "Union[int, str]"],
+                  "return_type": "int"},
+              }])
+        a = """\
+            def nop(a, b, c,  # some comment
+                    d, e, f,
+                    g=None, h=0):
+                return 0
+            """
+        b = """\
+            from typing import Optional
+            from typing import Union
+            def nop(a,  # type: int
+                    b,  # type: int
+                    c,  # type: int  # some comment
+                    d,  # type: str
+                    e,  # type: str
+                    f,  # type: str
+                    g=None,  # type: Optional[bool]
+                    h=0,  # type: Union[int, str]
+                    ):
+                # type: (...) -> int
+                return 0
+            """
+        self.check(a, b)

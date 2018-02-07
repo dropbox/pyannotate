@@ -162,6 +162,13 @@ class FixAnnotate(BaseFix):
             elif isinstance(child, Leaf) and flag:
                 set_prefix(child)
                 flag = False
+        need_comma = len(children) >= 1 and children[-1].type != token.COMMA
+        if need_comma and len(children) >= 2:
+            if (children[-1].type == token.NAME and
+                    (children[-2].type in (token.STAR, token.DOUBLESTAR))):
+                need_comma = False
+        if need_comma:
+            children.append(Leaf(token.COMMA, u","))
         # Find the ')' and insert a prefix before it too.
         parameters = args.parent
         close_paren = parameters.children[-1]
