@@ -864,6 +864,10 @@ def _trace_dispatch(frame, event, arg):
                         t = resolve_type(arg)
                 elif last_opcode == YIELD_VALUE_OPCODE:
                     # Yield from a generator.
+                    # TODO: Unify generators -- currently each YIELD is turned into
+                    # a separate call, so a function yielding ints and strs will be
+                    # typed as Union[Iterator[int], Iterator[str]] -- this should be
+                    # Iterator[Union[int, str]].
                     t = resolve_type(FakeIterator([arg]))
                 else:
                     # This branch is also taken when returning from a generator.

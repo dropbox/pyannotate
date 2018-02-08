@@ -616,7 +616,7 @@ class TestCollectTypes(TestBaseClass):
             list(gen(10, 'x', 1))
             list(gen(0, 0, 0))
 
-        # TODO: Wish this could return Iterator[Union[int, str]]
+        # TODO: This should really return Iterator[Union[int, str]]
         self.assert_type_comments('gen', ['(int, str, int) -> Iterator[int]',
                                           '(int, str, int) -> Iterator[str]'])
 
