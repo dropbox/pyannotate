@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='pyannotate',
-      version='1.0.4',
+      version='1.0.5',
       description="PyAnnotate: Auto-generate PEP-484 annotations",
       author='Dropbox',
       author_email='guido@dropbox.com',
