@@ -832,7 +832,7 @@ def _trace_dispatch(frame, event, arg):
             # No pending call event -- ignore this event. We only collect
             # return events when we know the corresponding call event.
             return
-        call_pending.remove(key)
+        call_pending.discard(key)  # Avoid race conditions
     else:
         # Ignore other events, such as c_call and c_return.
         return
