@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 
 from lib2to3.main import StdoutRefactoringTool
 
@@ -78,6 +79,10 @@ def main(args_override=None):
     args = parser.parse_args(args_override)
     if not args.files and not args.dump:
         parser.error("At least one file/directory is required")
+    try:
+        open(args.type_info).close()
+    except OSError as err:
+        sys.exit("Can't open type info file: %s" % err)
 
     # Set up logging handler.
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -88,8 +93,7 @@ def main(args_override=None):
         return
 
     # Run pass 2 with output into a variable.
-    infile = args.type_info
-    data = generate_annotations_json_string(infile)  # type: List[Any]
+    data = generate_annotations_json_string(args.type_info)  # type: List[Any]
 
     # Run pass 3 with input from that variable.
     if args.auto_any:
