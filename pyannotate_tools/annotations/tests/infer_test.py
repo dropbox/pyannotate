@@ -130,6 +130,12 @@ class TestInfer(unittest.TestCase):
                            ([(AnyType(), ARG_POS)],
                             UnionType([ClassType('str'), ClassType('int')])))
 
+    def test_infer_none_argument(self):
+        # type: () -> None
+        self.assert_infer(['(None) -> None'],
+                           ([(UnionType([ClassType('None'), AnyType()]), ARG_POS)],
+                            ClassType('None')))
+
 CT = ClassType
 
 

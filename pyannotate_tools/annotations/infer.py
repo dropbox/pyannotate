@@ -54,6 +54,10 @@ def infer_annotation(type_comments):
             raise InferError('Ambiguous argument kinds:\n' + '\n'.join(type_comments))
         types = [arg.type for arg in arg_infos]
         combined = combine_types(types)
+        if str(combined) == 'None':
+            # It's very rare for an argument to actually be typed `None`, more likely than
+            # not we simply don't have any data points for this argument.
+            combined = UnionType([ClassType('None'), AnyType()])
         if kind != ARG_POS and (len(str(combined)) > 120 or isinstance(combined, UnionType)):
             # Avoid some noise.
             combined = AnyType()
