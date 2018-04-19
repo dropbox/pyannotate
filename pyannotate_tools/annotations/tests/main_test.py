@@ -109,6 +109,52 @@ class TestMain(unittest.TestCase):
             }
         ]
 
+        with self.temporary_json_file(data) as source_path:
+            output_data = generate_annotations_json_string(source_path, only_simple=True)
+        assert output_data == []
+
+    def test_generate_simple_signatures(self):
+        # type: () -> None
+        data = """
+        [
+            {
+                "path": "pkg/thing.py",
+                "line": 422,
+                "func_name": "complex_function",
+                "type_comments": [
+                    "(List[int], str) -> None"
+                ],
+                "samples": 3
+            },
+            {
+                "path": "pkg/thing.py",
+                "line": 9000,
+                "func_name": "simple_function",
+                "type_comments": [
+                    "(int, str) -> None"
+                ],
+                "samples": 3
+            }
+        ]
+        """
+        with self.temporary_json_file(data) as source_path:
+            output_data = generate_annotations_json_string(source_path, only_simple=True)
+        assert output_data == [
+            {
+                "path": "pkg/thing.py",
+                "line": 9000,
+                "func_name": "simple_function",
+                "signature": {
+                    "arg_types": [
+                        "int",
+                        "str"
+                    ],
+                    "return_type": "None"
+                },
+                "samples": 3
+            }
+        ]
+
     @contextlib.contextmanager
     def temporary_json_file(self, data):
         # type: (str) -> Iterator[str]

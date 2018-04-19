@@ -20,7 +20,7 @@ FunctionData = TypedDict('FunctionData', {'path': str,
                                           'func_name': str,
                                           'signature': Signature,
                                           'samples': int})
-
+SIMPLE_TYPES = {'None', 'int', 'float', 'str', 'bytes', 'bool'}
 
 def unify_type_comments(type_comments):
     # type: (List[str]) -> Signature
@@ -39,8 +39,14 @@ def unify_type_comments(type_comments):
     }
 
 
-def generate_annotations_json_string(source_path):
-    # type: (str) -> List[FunctionData]
+def is_signature_simple(signature):
+    # type: (Signature) -> bool
+    return (all(x.lstrip('*') in SIMPLE_TYPES for x in signature['arg_types']) and
+            signature['return_type'] in SIMPLE_TYPES)
+
+
+def generate_annotations_json_string(source_path, only_simple=False):
+    # type: (str, bool) -> List[FunctionData]
     """Produce annotation data JSON file from a JSON file with runtime-collected types.
 
     Data formats:
@@ -52,19 +58,21 @@ def generate_annotations_json_string(source_path):
     results = []
     for item in items:
         signature = unify_type_comments(item.type_comments)
-        data = {
-            'path': item.path,
-            'line': item.line,
-            'func_name': item.func_name,
-            'signature': signature,
-            'samples': item.samples
-        }  # type: FunctionData
-        results.append(data)
+        if not only_simple or is_signature_simple(signature):
+            data = {
+                'path': item.path,
+                'line': item.line,
+                'func_name': item.func_name,
+                'signature': signature,
+                'samples': item.samples
+            }  # type: FunctionData
+            results.append(data)
     return results
 
-def generate_annotations_json(source_path, target_path):
-    # type: (str, str) -> None
+
+def generate_annotations_json(source_path, target_path, only_simple=False):
+    # type: (str, str, bool) -> None
     """Like generate_annotations_json_string() but writes JSON to a file."""
-    results = generate_annotations_json_string(source_path)
+    results = generate_annotations_json_string(source_path, only_simple=only_simple)
     with open(target_path, 'w') as f:
         json.dump(results, f, sort_keys=True, indent=4)
