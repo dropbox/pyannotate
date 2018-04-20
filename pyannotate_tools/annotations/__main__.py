@@ -33,7 +33,7 @@ parser.add_argument('-a', '--auto-any', action='store_true',
 parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
 parser.add_argument('-s', '--only-simple', action='store_true',
-                    help="Only annotate functions with trivial types.")
+                    help="Only annotate functions with trivial types")
 
 
 class ModifiedRefactoringTool(StdoutRefactoringTool):

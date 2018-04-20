@@ -58,7 +58,7 @@ def generate_annotations_json_string(source_path, only_simple=False):
     results = []
     for item in items:
         signature = unify_type_comments(item.type_comments)
-        if not only_simple or is_signature_simple(signature):
+        if is_signature_simple(signature) or not only_simple:
             data = {
                 'path': item.path,
                 'line': item.line,
