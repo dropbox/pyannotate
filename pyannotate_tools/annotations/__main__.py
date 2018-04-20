@@ -32,6 +32,8 @@ parser.add_argument('-a', '--auto-any', action='store_true',
                     help="Annotate everything with 'Any', without reading type_info.json")
 parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
+parser.add_argument('-s', '--only-simple', action='store_true',
+                    help="Only annotate functions with trivial types")
 
 
 class ModifiedRefactoringTool(StdoutRefactoringTool):
@@ -93,7 +95,8 @@ def main(args_override=None):
         return
 
     # Run pass 2 with output into a variable.
-    data = generate_annotations_json_string(args.type_info)  # type: List[Any]
+    data = generate_annotations_json_string(args.type_info,
+                                            only_simple=args.only_simple)  # type: List[Any]
 
     # Run pass 3 with input from that variable.
     if args.auto_any:
