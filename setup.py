@@ -9,7 +9,7 @@ def get_long_description():
         return f.read()
 
 setup(name='pyannotate',
-      version='1.0.5',
+      version='1.0.6',
       description="PyAnnotate: Auto-generate PEP-484 annotations",
       long_description=get_long_description(),
       author='Dropbox',
