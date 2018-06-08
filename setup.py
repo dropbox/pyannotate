@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 
+import os
 from setuptools import setup
+
+def get_long_description():
+    filename = os.path.join(os.path.dirname(__file__), 'README.md')
+    with open(filename) as f:
+        return f.read()
 
 setup(name='pyannotate',
       version='1.0.5',
       description="PyAnnotate: Auto-generate PEP-484 annotations",
+      long_description=get_long_description(),
       author='Dropbox',
       author_email='guido@dropbox.com',
       url='https://github.com/dropbox/pyannotate',
