@@ -23,7 +23,7 @@ Phase 1: Collecting types at runtime
   `collect_types.pause()` (or use the context manager below)
 - When done, call `collect_types.dump_stats(filename)`
 
-All calls between the `pause()` and `resume()` calls will be analyzed
+All calls between the `resume()` and `pause()` calls will be analyzed
 and the observed types will be written (in JSON form) to the filename
 you pass to `dump_stats()`.  You can have multiple pause/resume pairs
 per dump call.
