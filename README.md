@@ -19,19 +19,19 @@ Phase 1: Collecting types at runtime
 - Install the usual way (see "red tape" section below)
 - Add `from pyannotate_runtime import collect_types` to your test
 - Early in your test setup, call `collect_types.init_types_collection()`
-- Bracket your test code between calls to `collect_types.resume()` and
-  `collect_types.pause()` (or use the context manager below)
+- Bracket your test execution between calls to `collect_types.start()` and
+  `collect_types.stop()` (or use the context manager below)
 - When done, call `collect_types.dump_stats(filename)`
 
-All calls between the `resume()` and `pause()` calls will be analyzed
+All calls between the `start()` and `stop()` calls will be analyzed
 and the observed types will be written (in JSON form) to the filename
-you pass to `dump_stats()`.  You can have multiple pause/resume pairs
+you pass to `dump_stats()`.  You can have multiple start/stop pairs
 per dump call.
 
 If you'd like to automatically collect types when you run `pytest`,
 see `example/example_conftest.py` and `example/README.md`.
 
-Instead of using `resume()` and `pause()` you can also use a context
+Instead of using `start()` and `stop()` you can also use a context
 manager:
 ```
 collect_types.init_types_collection()
