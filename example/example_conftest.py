@@ -18,9 +18,9 @@ def pytest_collection_finish(session):
 @pytest.fixture(autouse=True)
 def collect_types_fixture():
     from pyannotate_runtime import collect_types
-    collect_types.resume()
+    collect_types.start()
     yield
-    collect_types.pause()
+    collect_types.stop()
 
 
 def pytest_sessionfinish(session, exitstatus):
