@@ -195,9 +195,9 @@ class TestBaseClass(unittest.TestCase):
         collect_types.num_samples = {}
         collect_types.sampling_counters = {}
         collect_types.call_pending = set()
-        collect_types.resume()
+        collect_types.start()
         yield None
-        collect_types.pause()
+        collect_types.stop()
         self.load_stats()
 
     def assert_type_comments(self, func_name, comments):
@@ -437,11 +437,11 @@ class TestCollectTypes(TestBaseClass):
 
         def only_return(x):
             # type: (int) -> str
-            collect_types.resume()
+            collect_types.start()
             return ''
 
         only_return(1)
-        collect_types.pause()
+        collect_types.stop()
         self.load_stats()
         # No entry is stored if we only have a return event with no matching call.
         self.assert_type_comments('only_return', [])

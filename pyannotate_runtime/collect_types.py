@@ -8,11 +8,11 @@ type info about arguments and return type.
 
 For the module consumer, the workflow looks like that:
 1) call init_types_collection() from the main thread once
-2) call resume() to start the type collection
-3) call pause() to stop the type collection
+2) call start() to start the type collection
+3) call stop() to stop the type collection
 4) call dump_stats(file_name) to dump all collected info to the file as json
 
-You can repeat resume() / pause() as many times as you want.
+You can repeat start() / stop() as many times as you want.
 
 The module is based on Tony's 2016 prototype D219371.
 """
@@ -733,17 +733,25 @@ call_pending = set()  # type: Set[int]
 @contextmanager
 def collect():
     # type: () -> Iterator[None]
-    resume()
+    start()
     try:
         yield
     finally:
-        pause()
+        stop()
 
 
 def pause():
     # type: () -> None
     """
-    Pause the type collection
+    Deprecated, replaced by stop().
+    """
+    # In the future, do: warnings.warn("Function pause() has been replaced by start().", PendingDeprecationWarning)
+    return stop()
+
+def stop():
+    # type: () -> None
+    """
+    Start collecting type information.
     """
     global running  # pylint: disable=global-statement
     running = False
@@ -753,7 +761,15 @@ def pause():
 def resume():
     # type: () -> None
     """
-    Resume the type collection
+    Deprecated, replaced by start().
+    """
+    # In the future, do: warnings.warn("Function resume() has been replaced by stop().", PendingDeprecationWarning)
+    return start()
+
+def start():
+    # type: () -> None
+    """
+    Stop collecting type information.
     """
     global running  # pylint: disable=global-statement
     running = True
