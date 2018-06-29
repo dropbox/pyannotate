@@ -187,7 +187,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a3, b3)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_staticmethod(self):
         a = """\
             class C:
@@ -199,8 +198,7 @@ class TestFixAnnotate3(FixerTestCase):
             from typing import Any
             class C:
                 @staticmethod
-                def incr(self):
-                    # type: (Any) -> Any
+                def incr(self: Any) -> Any:
                     return 42
             """
         self.check(a, b)
@@ -217,7 +215,7 @@ class TestFixAnnotate3(FixerTestCase):
             from typing import Any
             class C:
                 @classmethod
-                def incr(cls, arg):
+                def incr(cls, arg: Any) -> Any:
                     # type: (Any) -> Any
                     return 42
             """
@@ -239,7 +237,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_fake_self(self):
         a = """\
             def incr(self, arg):
@@ -247,8 +244,7 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def incr(self, arg):
-                # type: (Any, Any) -> Any
+            def incr(self: Any, arg: Any) -> Any:
                 return 42
             """
         self.check(a, b)
@@ -264,10 +260,8 @@ class TestFixAnnotate3(FixerTestCase):
         b = """\
             from typing import Any
             class C:
-                def outer(self):
-                    # type: () -> None
-                    def inner(self, arg):
-                        # type: (Any, Any) -> Any
+                def outer(self) -> None:
+                    def inner(self: Any, arg: Any) -> Any:
                         return 42
             """
         self.check(a, b)
@@ -288,8 +282,7 @@ class TestFixAnnotate3(FixerTestCase):
                 @contextmanager
                 @classmethod
                 @wrapped('func')
-                def incr(cls, arg):
-                    # type: (Any) -> Any
+                def incr(cls, arg: Any) -> Any:
                     return 42
             """
         self.check(a, b)
@@ -308,7 +301,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency(self):
         a = """\
             def incr(arg):
@@ -317,7 +309,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.unchanged(a)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_no_return_expr(self):
         a = """\
             def proc1(arg):
@@ -327,16 +318,13 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def proc1(arg):
-                # type: (Any) -> None
+            def proc1(arg: Any) -> None:
                 return
-            def proc2(arg):
-                # type: (Any) -> None
+            def proc2(arg: Any) -> None:
                 pass
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_nested_return_expr(self):
         # The 'return expr' in inner() shouldn't affect the return type of outer().
         a = """\
@@ -347,16 +335,13 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def outer(arg):
-                # type: (Any) -> None
-                def inner():
-                    # type: () -> Any
+            def outer(arg: Any) -> None:
+                def inner() -> Any:
                     return 42
                 return
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_nested_class_return_expr(self):
         # The 'return expr' in class Inner shouldn't affect the return type of outer().
         a = """\
@@ -367,15 +352,13 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def outer(arg):
-                # type: (Any) -> None
+            def outer(arg: Any) -> None:
                 class Inner:
                     return 42
                 return
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_add_import(self):
         a = """\
             import typing
@@ -389,21 +372,18 @@ class TestFixAnnotate3(FixerTestCase):
             from typing import Callable
             from typing import Any
 
-            def incr(arg):
-                # type: (Any) -> Any
+            def incr(arg: Any) -> Any:
                 return 42
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_dont_add_import(self):
         a = """\
             def nop(arg=0):
                 return
             """
         b = """\
-            def nop(arg=0):
-                # type: (int) -> None
+            def nop(arg: int=0) -> None:
                 return
             """
         self.check(a, b)
