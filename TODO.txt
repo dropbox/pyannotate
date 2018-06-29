@@ -10,3 +10,24 @@ TODO:
 - only Any is added at the start of the import statements
 - fix mypy in strict mode
 - add code coverage reporting
+
+
+Structure of the arguments tokens:
+    # + LPAR '('
+    # + node
+    #   [ 
+    #     + NAME positional arg1
+    #    [
+    #     + EQUAL '='
+    #     + node expr or value leaf
+    #    ]
+    #    (
+    #     + COMMA ','
+    #     + NAME positional argn
+    #     [
+    #     + EQUAL '='
+    #     + node expr or value leaf
+    #     ]
+    #    )*
+    #   ]
+    # + RPAR ')'

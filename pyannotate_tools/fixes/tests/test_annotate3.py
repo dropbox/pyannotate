@@ -95,7 +95,6 @@ class TestFixAnnotate3(FixerTestCase):
         self.check(a6, b6)
 
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_one_arg(self):
         a = """\
             def incr(arg):
@@ -103,13 +102,23 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def incr(arg):
-                # type: (Any) -> Any
+            def incr(arg: Any) -> Any:
                 return arg+1
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
+
+        a2 = """\
+            def incr(arg=0):
+                return arg+1
+            """
+        b2 = """\
+            from typing import Any
+            def incr(arg: int=0) -> Any:
+                return arg+1
+            """
+        self.check(a2, b2)
+
     def test_two_args(self):
         a = """\
             def add(arg1, arg2):
@@ -117,13 +126,33 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def add(arg1, arg2):
-                # type: (Any, Any) -> Any
+            def add(arg1: Any, arg2: Any) -> Any:
                 return arg1+arg2
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
+        a2 = """\
+            def add(arg1=0, arg2=0.1):
+                return arg1+arg2
+            """
+        b2 = """\
+            from typing import Any
+            def add(arg1: int=0, arg2: float=0.1) -> Any:
+                return arg1+arg2
+            """
+        self.check(a2, b2)
+
+        a3 = """\
+            def add(arg1, arg2=0.1):
+                return arg1+arg2
+            """
+        b3 = """\
+            from typing import Any
+            def add(arg1: Any, arg2: float=0.1) -> Any:
+                return arg1+arg2
+            """
+        self.check(a3, b3)
+
     def test_defaults(self):
         a = """\
             def foo(iarg=0, farg=0.0, sarg='', uarg=u'', barg=False):
@@ -131,11 +160,32 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def foo(iarg=0, farg=0.0, sarg='', uarg=u'', barg=False):
-                # type: (int, float, str, unicode, bool) -> Any
+            def foo(iarg: int=0, farg: float=0.0, sarg: str='', uarg: unicode=u'', barg: bool=False) -> Any:
                 return 42
             """
         self.check(a, b)
+
+        a2 = """\
+            def foo(iarg=0, farg=0.0, sarg='', uarg=u'', barg=False, targ=(1,2,3)):
+                return 42
+            """
+        b2 = """\
+            from typing import Any
+            def foo(iarg: int=0, farg: float=0.0, sarg: str='', uarg: unicode=u'', barg: bool=False, targ: Any=(1,2,3)) -> Any:
+                return 42
+            """
+        self.check(a2, b2)
+
+        a3 = """\
+            def foo(iarg=0, farg, sarg='', uarg, barg=False, targ=(1,2,3)):
+                return 42
+            """
+        b3 = """\
+            from typing import Any
+            def foo(iarg: int=0, farg: Any, sarg: str='', uarg: Any, barg: bool=False, targ: Any=(1,2,3)) -> Any:
+                return 42
+            """
+        self.check(a3, b3)
 
     @unittest.skip( 'Not implemented yet...' )
     def test_staticmethod(self):

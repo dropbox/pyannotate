@@ -45,7 +45,7 @@ class FixAnnotate3(BaseFix):
 
     # The pattern to match.
     PATTERN = """
-              funcdef< 'def' name=any parameters=parameters< '(' [args=any] rparent=')' > ':' suite=any+ >
+              funcdef< 'def' name=any parameters=parameters< '(' [args=any] rpar=')' > ':' suite=any+ >
               """
 
     _maxfixes = os.getenv('MAXFIXES')
@@ -69,7 +69,7 @@ class FixAnnotate3(BaseFix):
                     return
 
         suite = results['suite']
-        rparent = results['rparent']
+        rpar = results['rpar']
         children = suite[0].children
 
         # NOTE: I've reverse-engineered the structure of the parse tree.
@@ -95,10 +95,67 @@ class FixAnnotate3(BaseFix):
         annot = self.make_annotation(node, results)
         if annot is None:
             return
-
         argtypes, restype = annot
-        rparent.value = '%s -> %s' % (rparent.value, restype)
-        rparent.changed()
+
+        ### Add argument annotation
+        #
+        # Structure of the arguments tokens for one argument without default value :
+        # + LPAR '('
+        # + NAME arg1
+        # + RPAR ')'
+        #
+        # Structure of the arguments tokens for one args with default value or multiple
+        # args, with or without default value :
+        # + LPAR '('
+        # + node
+        #     + NAME positional arg1
+        #    [
+        #     + EQUAL '='
+        #     + node expr or value leaf
+        #    ]
+        #    (
+        #     + COMMA ','
+        #     + NAME positional argn
+        #     [
+        #     + EQUAL '='
+        #     + node expr or value leaf
+        #     ]
+        #    )*
+        # + RPAR ')'
+
+        argidx = 0
+        if args is None:
+            # function with 0 arguments
+            it = iter([])
+        elif len(args.children) == 0:
+            # function with 1 argument
+            it = iter( [ args ] )
+        else:
+            # function with multiple arguments or 1 arg with default value
+            it = iter(args.children)
+        for ch in it:
+            assert ch.type == token.NAME
+
+            ch.value = '%s: %s' % (ch.value, argtypes[argidx])
+            argidx += 1
+
+            try:
+                ch = next(it)
+                if ch.type == token.EQUAL:
+                    ch = next(it)
+                    ch = next(it)
+                assert ch.type == token.COMMA
+                continue
+            except StopIteration:
+                break
+
+        # make sure that all type information has been consumed
+        assert argidx == len(argtypes)
+
+        # Add return annotation
+        rpar.value = '%s -> %s' % (rpar.value, restype)
+
+        rpar.changed()
         if FixAnnotate3.counter is not None:
             FixAnnotate3.counter -= 1
 
