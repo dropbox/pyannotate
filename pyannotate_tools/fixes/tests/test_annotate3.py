@@ -203,7 +203,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_classmethod(self):
         a = """\
             class C:
@@ -216,12 +215,10 @@ class TestFixAnnotate3(FixerTestCase):
             class C:
                 @classmethod
                 def incr(cls, arg: Any) -> Any:
-                    # type: (Any) -> Any
                     return 42
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_instancemethod(self):
         a = """\
             class C:
@@ -231,8 +228,7 @@ class TestFixAnnotate3(FixerTestCase):
         b = """\
             from typing import Any
             class C:
-                def incr(self, arg):
-                    # type: (Any) -> Any
+                def incr(self, arg: Any) -> Any:
                     return 42
             """
         self.check(a, b)
@@ -249,7 +245,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_nested_fake_self(self):
         a = """\
             class C:
@@ -266,7 +261,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_multiple_decorators(self):
         a = """\
             class C:
@@ -444,7 +438,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_one_liner(self):
         a = """\
             class C:
@@ -456,16 +449,13 @@ class TestFixAnnotate3(FixerTestCase):
         b = """\
             from typing import Any
             class C:
-                def nop(self, a):
-                    # type: (Any) -> Any
-                    a = a; return a
+                def nop(self, a: Any) -> Any: a = a; return a
                 # Something
             # More
             pass
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency_long_1arg(self):
         a = """\
             def nop(a  # type: int
@@ -474,7 +464,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.unchanged(a)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency_long_1arg_comma(self):
         a = """\
             def nop(a,  # type: int
@@ -483,7 +472,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.unchanged(a)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency_long_2args_first(self):
         a = """\
             def nop(a,  # type: int
@@ -492,7 +480,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.unchanged(a)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency_long_2args_last(self):
         a = """\
             def nop(a,
@@ -502,7 +489,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.unchanged(a)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency_long_varargs(self):
         a = """\
             def nop(*a  # type: int
@@ -511,7 +497,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.unchanged(a)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_idempotency_long_kwargs(self):
         a = """\
             def nop(**a  # type: int

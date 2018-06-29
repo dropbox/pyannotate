@@ -123,7 +123,8 @@ class FixAnnotate3(BaseFix):
         #    )*
         # + RPAR ')'
 
-        argidx = 0
+
+        argleaves = []
         if args is None:
             # function with 0 arguments
             it = iter([])
@@ -133,12 +134,10 @@ class FixAnnotate3(BaseFix):
         else:
             # function with multiple arguments or 1 arg with default value
             it = iter(args.children)
+
         for ch in it:
             assert ch.type == token.NAME
-
-            ch.value = '%s: %s' % (ch.value, argtypes[argidx])
-            argidx += 1
-
+            argleaves.append( ch )
             try:
                 ch = next(it)
                 if ch.type == token.EQUAL:
@@ -149,8 +148,11 @@ class FixAnnotate3(BaseFix):
             except StopIteration:
                 break
 
-        # make sure that all type information has been consumed
-        assert argidx == len(argtypes)
+        # when self or cls is not annotated, argleaves == argtypes+1
+        argleaves = argleaves[ len(argleaves)-len(argtypes): ]
+
+        for ch, chtype in zip(argleaves, argtypes):
+            ch.value = '%s: %s' % (ch.value, chtype)
 
         # Add return annotation
         rpar.value = '%s -> %s' % (rpar.value, restype)
