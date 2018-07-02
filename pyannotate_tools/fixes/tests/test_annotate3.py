@@ -281,27 +281,75 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_stars(self):
         a = """\
-            def stuff(*a, **kw):
+            def stuff(*a):
                 return 4, 2
             """
         b = """\
             from typing import Any
-            def stuff(*a, **kw):
-                # type: (*Any, **Any) -> Any
+            def stuff(*a: Any) -> Any:
                 return 4, 2
             """
         self.check(a, b)
 
-    def test_idempotency(self):
-        a = """\
-            def incr(arg):
-                # type: (Any) -> Any
-                return arg+1
+        a1 = """\
+            def stuff(a, *b):
+                return 4, 2
             """
-        self.unchanged(a)
+        b1 = """\
+            from typing import Any
+            def stuff(a: Any, *b: Any) -> Any:
+                return 4, 2
+            """
+        self.check(a1, b1)
+
+
+        
+    def test_keywords(self):
+        a = """\
+            def stuff(**kw):
+                return 4, 2
+            """
+        b = """\
+            from typing import Any
+            def stuff(**kw: Any) -> Any:
+                return 4, 2
+            """
+        self.check(a, b)
+
+        a1 = """\
+            def stuff(a, **kw):
+                return 4, 2
+            """
+        b1 = """\
+            from typing import Any
+            def stuff(a: Any, **kw: Any) -> Any:
+                return 4, 2
+            """
+        self.check(a1, b1)
+
+        a2 = """\
+            def stuff(a, *b, **kw):
+                return 4, 2
+            """
+        b2 = """\
+            from typing import Any
+            def stuff(a: Any, *b: Any, **kw: Any) -> Any:
+                return 4, 2
+            """
+        self.check(a2, b2)
+
+        a3 = """\
+            def stuff(*b, **kw):
+                return 4, 2
+            """
+        b3 = """\
+            from typing import Any
+            def stuff(*b: Any, **kw: Any) -> Any:
+                return 4, 2
+            """
+        self.check(a3, b3)
 
     def test_no_return_expr(self):
         a = """\

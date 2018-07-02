@@ -99,28 +99,39 @@ class FixAnnotate3(BaseFix):
 
         ### Add argument annotation
         #
-        # Structure of the arguments tokens for one argument without default value :
+        # Structure of the arguments tokens for one positional argument without default value :
         # + LPAR '('
         # + NAME arg1
         # + RPAR ')'
         #
         # Structure of the arguments tokens for one args with default value or multiple
-        # args, with or without default value :
+        # args, with or without default value, and/or with extra arguments :
         # + LPAR '('
         # + node
+        #   [
         #     + NAME positional arg1
-        #    [
-        #     + EQUAL '='
-        #     + node expr or value leaf
-        #    ]
+        #      [
+        #        + EQUAL '='
+        #        + node expr or value leaf
+        #      ]
         #    (
-        #     + COMMA ','
-        #     + NAME positional argn
-        #     [
-        #     + EQUAL '='
-        #     + node expr or value leaf
-        #     ]
+        #        + COMMA ','
+        #        + NAME positional argn
+        #      [
+        #        + EQUAL '='
+        #        + node expr or value leaf
+        #      ]
         #    )*
+        #   ]
+        #   [
+        #     + STAR '*'
+        #     + NAME star argument name
+        #   ]
+        #   [
+        #     + COMMA ','
+        #     + DOUBLESTAR '**'
+        #     + NAME keyword argument name
+        #   ]
         # + RPAR ')'
 
 
@@ -136,8 +147,17 @@ class FixAnnotate3(BaseFix):
             it = iter(args.children)
 
         for ch in it:
+            argstyle = 'name'
+            if ch.type == token.STAR:
+                # *arg part
+                argstyle = 'star'
+                ch = next(it)
+            elif ch.type == token.DOUBLESTAR:
+                # *arg part
+                argstyle = 'keyword'
+                ch = next(it)
             assert ch.type == token.NAME
-            argleaves.append( ch )
+            argleaves.append( (argstyle, ch) )
             try:
                 ch = next(it)
                 if ch.type == token.EQUAL:
@@ -151,7 +171,16 @@ class FixAnnotate3(BaseFix):
         # when self or cls is not annotated, argleaves == argtypes+1
         argleaves = argleaves[ len(argleaves)-len(argtypes): ]
 
-        for ch, chtype in zip(argleaves, argtypes):
+        for ch_withstyle, chtype in zip(argleaves, argtypes):
+            style, ch = ch_withstyle
+            if style == 'star':
+                assert chtype[0] == '*'
+                assert chtype[1] != '*'
+                chtype = chtype[1:]
+            elif style == 'keyword':
+                assert chtype[0:2] == '**'
+                assert chtype[2] != '*'
+                chtype = chtype[2:]
             ch.value = '%s: %s' % (ch.value, chtype)
 
         # Add return annotation
