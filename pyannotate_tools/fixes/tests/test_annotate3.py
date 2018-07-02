@@ -430,7 +430,6 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_long_form(self):
         self.maxDiff = None
         a = """\
@@ -441,25 +440,13 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def nop(arg0,  # type: Any
-                    arg1,  # type: Any
-                    arg2,  # type: Any
-                    arg3,  # type: Any
-                    arg4,  # type: Any
-                    arg5,  # type: Any
-                    arg6,  # type: Any
-                    arg7,  # type: Any
-                    arg8=0,  # type: int
-                    arg9='',  # type: str
-                    *args,  # type: Any
-                    **kwds  # type: Any
-                    ):
-                # type: (...) -> None
+            def nop(arg0: Any, arg1: Any, arg2: Any, arg3: Any, arg4: Any,
+                    arg5: Any, arg6: Any, arg7: Any, arg8: int=0, arg9: str='',
+                    *args: Any, **kwds: Any) -> None:
                 return
             """
         self.check(a, b)
 
-    @unittest.skip( 'Not implemented yet...' )
     def test_long_form_trailing_comma(self):
         self.maxDiff = None
         a = """\
@@ -469,19 +456,8 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def nop(arg0,  # type: Any
-                    arg1,  # type: Any
-                    arg2,  # type: Any
-                    arg3,  # type: Any
-                    arg4,  # type: Any
-                    arg5,  # type: Any
-                    arg6,  # type: Any
-                    arg7=None,  # type: Any
-                    arg8=0,  # type: int
-                    arg9='',  # type: str
-                    arg10=False,  # type: bool
-                    ):
-                # type: (...) -> None
+            def nop(arg0: Any, arg1: Any, arg2: Any, arg3: Any, arg4: Any, arg5: Any, arg6: Any,
+                    arg7: Any=None, arg8: int=0, arg9: str='', arg10: bool=False,) -> None:
                 return
             """
         self.check(a, b)
