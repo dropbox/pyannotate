@@ -16,6 +16,7 @@ class TestFixAnnotateJson(FixerTestCase):
         super(TestFixAnnotateJson, self).setUp(
             fix_list=["annotate_json"],
             fixer_pkg="pyannotate_tools",
+            options={'annotation_style' : 'py2'},
         )
         # See https://bugs.python.org/issue14243 for details
         self.tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
