@@ -481,9 +481,12 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
+
+class TestIdemPotency(TestFixAnnotate3):
+
     def test_idempotency_long_1arg(self):
         a = """\
-            def nop(a  # type: int
+            def nop(a: int
                     ):
                 pass
             """
@@ -491,7 +494,7 @@ class TestFixAnnotate3(FixerTestCase):
 
     def test_idempotency_long_1arg_comma(self):
         a = """\
-            def nop(a,  # type: int
+            def nop(a: int,
                     ):
                 pass
             """
@@ -499,7 +502,7 @@ class TestFixAnnotate3(FixerTestCase):
 
     def test_idempotency_long_2args_first(self):
         a = """\
-            def nop(a,  # type: int
+            def nop(a: int,
                     b):
                 pass
             """
@@ -508,7 +511,7 @@ class TestFixAnnotate3(FixerTestCase):
     def test_idempotency_long_2args_last(self):
         a = """\
             def nop(a,
-                    b  # type: int
+                    b: int
                     ):
                 pass
             """
@@ -516,7 +519,7 @@ class TestFixAnnotate3(FixerTestCase):
 
     def test_idempotency_long_varargs(self):
         a = """\
-            def nop(*a  # type: int
+            def nop(*a: int
                     ):
                 pass
             """
@@ -524,8 +527,47 @@ class TestFixAnnotate3(FixerTestCase):
 
     def test_idempotency_long_kwargs(self):
         a = """\
-            def nop(**a  # type: int
+            def nop(**a: int
                     ):
                 pass
             """
         self.unchanged(a)
+
+
+    def test_idempotency_arg0_ret_value(self):
+        a = """\
+            def nop() -> int:
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_arg1_ret_value(self):
+        a = """\
+            def nop(a) -> int:
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_arg1_default_1(self):
+        a = """\
+            def nop(a: int=0):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_arg1_default_2(self):
+        a = """\
+            def nop(a: List[int]=[]):
+                pass
+            """
+        self.unchanged(a)
+
+    def test_idempotency_arg1_default_3(self):
+        a = """\
+            def nop(a: List[int]=[1,2,3]):
+                pass
+            """
+        self.unchanged(a)
+
+
+

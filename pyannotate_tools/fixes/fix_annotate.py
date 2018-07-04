@@ -97,6 +97,79 @@ class FixAnnotate(BaseFix):
             if ch.prefix.lstrip().startswith('# type:'):
                 return  # There's already a # type: comment here; don't change anything.
 
+        # Python 3 style return annotation are already skipped by the pattern
+
+        ### Python 3 style argument annotation
+        #
+        # Structure of the arguments tokens for one positional argument without default value :
+        # + LPAR '('
+        # + NAME_NODE_OR_LEAF arg1
+        # + RPAR ')'
+        #
+        # NAME_NODE_OR_LEAF is either:
+        # 1. Just a leaf with value NAME
+        # 2. A node with children: NAME, ':", node expr or value leaf
+        #
+        # Structure of the arguments tokens for one args with default value or multiple
+        # args, with or without default value, and/or with extra arguments :
+        # + LPAR '('
+        # + node
+        #   [
+        #     + NAME_NODE_OR_LEAF
+        #      [
+        #        + EQUAL '='
+        #        + node expr or value leaf
+        #      ]
+        #    (
+        #        + COMMA ','
+        #        + NAME_NODE_OR_LEAF positional argn
+        #      [
+        #        + EQUAL '='
+        #        + node expr or value leaf
+        #      ]
+        #    )*
+        #   ]
+        #   [
+        #     + STAR '*'
+        #     [
+        #     + NAME_NODE_OR_LEAF positional star argument name
+        #     ]
+        #   ]
+        #   [
+        #     + COMMA ','
+        #     + DOUBLESTAR '**'
+        #     + NAME_NODE_OR_LEAF positional keyword argument name
+        #   ]
+        # + RPAR ')'
+
+        # Let's skip Python 3 argument annotations
+        it = iter(args.children) if args else iter([])
+        for ch in it:
+            if ch.type == token.STAR:
+                # *arg part
+                ch = next(it)
+                if ch.type == token.COMMA:
+                    continue
+            elif ch.type == token.DOUBLESTAR:
+                # *arg part
+                ch = next(it)
+            if ch.type > 256:
+                # this is a node, therefore an annotation
+                assert ch.children[0].type == token.NAME
+                return
+            try:
+                ch = next(it)
+                if ch.type == token.COLON:
+                    # this is an annotation
+                    return
+                elif ch.type == token.EQUAL:
+                    ch = next(it)
+                    ch = next(it)
+                assert ch.type == token.COMMA
+                continue
+            except StopIteration:
+                break
+
         # Compute the annotation
         annot = self.make_annotation(node, results)
         if annot is None:
@@ -117,46 +190,6 @@ class FixAnnotate(BaseFix):
 
 
     def add_py3_annot( self, argtypes, restype, node, results):
-        ### Add python 3 style argument annotation
-        #
-        # Structure of the arguments tokens for one positional argument without default value :
-        # + LPAR '('
-        # + NAME arg1
-        # + RPAR ')'
-        #
-        # Structure of the arguments tokens for one args with default value or multiple
-        # args, with or without default value, and/or with extra arguments :
-        # + LPAR '('
-        # + node
-        #   [
-        #     + NAME positional arg1
-        #      [
-        #        + EQUAL '='
-        #        + node expr or value leaf
-        #      ]
-        #    (
-        #        + COMMA ','
-        #        + NAME positional argn
-        #      [
-        #        + EQUAL '='
-        #        + node expr or value leaf
-        #      ]
-        #    )*
-        #   ]
-        #   [
-        #     + STAR '*'
-        #     [
-        #     + NAME star argument name
-        #     ]
-        #   ]
-        #   [
-        #     + COMMA ','
-        #     + DOUBLESTAR '**'
-        #     + NAME keyword argument name
-        #   ]
-        # + RPAR ')'
-
-        rpar = results['rpar']
         args = results.get('args')
 
         argleaves = []
@@ -210,6 +243,7 @@ class FixAnnotate(BaseFix):
             ch.value = '%s: %s' % (ch.value, chtype)
 
         # Add return annotation
+        rpar = results['rpar']
         rpar.value = '%s -> %s' % (rpar.value, restype)
 
         rpar.changed()
