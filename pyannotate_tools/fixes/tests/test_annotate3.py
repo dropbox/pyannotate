@@ -17,7 +17,7 @@ class TestFixAnnotate3(FixerTestCase):
             options={'annotation_style' : 'py3'}
         )
 
-    def test_no_arg(self) :
+    def test_no_arg_1(self) :
         a = """\
             def nop():
                 return 42
@@ -29,74 +29,77 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-        ### Check many variations of the base syntax
-        a2 = """\
+    def test_no_arg_2(self) :
+        a = """\
             def nop(): return 42
             """
-        b2 = """\
+        b = """\
             from typing import Any
             def nop() -> Any: return 42
             """
-        self.check(a2, b2)
+        self.check(a, b)
 
-        a3 = """\
+    def test_no_arg_3(self) :
+        a = """\
             def nop(
                     ): 
                 return 42
             """
-        b3 = """\
+        b = """\
             from typing import Any
             def nop(
                     ) -> Any: 
                 return 42
             """
-        self.check(a3, b3)
+        self.check(a, b)
 
-        a4 = """\
+    def test_no_arg_4(self) :
+        a = """\
             def nop(
                     )   \
                     : 
                 return 42
             """
-        b4 = """\
+        b = """\
             from typing import Any
             def nop(
                     ) -> Any   \
                     : 
                 return 42
             """
-        self.check(a4, b4)
+        self.check(a, b)
 
-        a5 = """\
+    def test_no_arg_5(self) :
+        a = """\
             def nop(    # blah
                     ):  # blah
                 return 42 # blah
             """
-        b5 = """\
+        b = """\
             from typing import Any
             def nop(    # blah
                     ) -> Any:  # blah
                 return 42 # blah
             """
-        self.check(a5, b5)
+        self.check(a, b)
 
-        a6 = """\
+    def test_no_arg_6(self) :
+        a = """\
             def nop(    # blah
                     )   \
                     :   # blah
                 return 42 # blah
             """
-        b6 = """\
+        b = """\
             from typing import Any
             def nop(    # blah
                     ) -> Any   \
                     :   # blah
                 return 42 # blah
             """
-        self.check(a6, b6)
+        self.check(a, b)
 
-
-    def test_one_arg(self):
+    def test_one_arg_1(self):
         a = """\
             def incr(arg):
                 return arg+1
@@ -109,18 +112,19 @@ class TestFixAnnotate3(FixerTestCase):
         self.check(a, b)
 
 
-        a2 = """\
+    def test_one_arg_2(self):
+        a = """\
             def incr(arg=0):
                 return arg+1
             """
-        b2 = """\
+        b = """\
             from typing import Any
             def incr(arg: int=0) -> Any:
                 return arg+1
             """
-        self.check(a2, b2)
+        self.check(a, b)
 
-    def test_two_args(self):
+    def test_two_args_1(self):
         a = """\
             def add(arg1, arg2):
                 return arg1+arg2
@@ -132,29 +136,31 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-        a2 = """\
+    def test_two_args_2(self):
+        a = """\
             def add(arg1=0, arg2=0.1):
                 return arg1+arg2
             """
-        b2 = """\
+        b = """\
             from typing import Any
             def add(arg1: int=0, arg2: float=0.1) -> Any:
                 return arg1+arg2
             """
-        self.check(a2, b2)
+        self.check(a, b)
 
-        a3 = """\
+    def test_two_args_3(self):
+        a = """\
             def add(arg1, arg2=0.1):
                 return arg1+arg2
             """
-        b3 = """\
+        b = """\
             from typing import Any
             def add(arg1: Any, arg2: float=0.1) -> Any:
                 return arg1+arg2
             """
-        self.check(a3, b3)
+        self.check(a, b)
 
-    def test_defaults(self):
+    def test_defaults_1(self):
         a = """\
             def foo(iarg=0, farg=0.0, sarg='', uarg=u'', barg=False):
                 return 42
@@ -166,27 +172,29 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-        a2 = """\
+    def test_defaults_2(self):
+        a = """\
             def foo(iarg=0, farg=0.0, sarg='', uarg=u'', barg=False, targ=(1,2,3)):
                 return 42
             """
-        b2 = """\
+        b = """\
             from typing import Any
             def foo(iarg: int=0, farg: float=0.0, sarg: str='', uarg: unicode=u'', barg: bool=False, targ: Any=(1,2,3)) -> Any:
                 return 42
             """
-        self.check(a2, b2)
+        self.check(a, b)
 
-        a3 = """\
+    def test_defaults_3(self):
+        a = """\
             def foo(iarg=0, farg, sarg='', uarg, barg=False, targ=(1,2,3)):
                 return 42
             """
-        b3 = """\
+        b = """\
             from typing import Any
             def foo(iarg: int=0, farg: Any, sarg: str='', uarg: Any, barg: bool=False, targ: Any=(1,2,3)) -> Any:
                 return 42
             """
-        self.check(a3, b3)
+        self.check(a, b)
 
     def test_staticmethod(self):
         a = """\
@@ -282,7 +290,7 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-    def test_stars(self):
+    def test_stars_1(self):
         a = """\
             def stuff(*a):
                 return 4, 2
@@ -294,20 +302,20 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-        a1 = """\
+    def test_stars_2(self):
+        a = """\
             def stuff(a, *b):
                 return 4, 2
             """
-        b1 = """\
+        b = """\
             from typing import Any
             def stuff(a: Any, *b: Any) -> Any:
                 return 4, 2
             """
-        self.check(a1, b1)
-
+        self.check(a, b)
 
         
-    def test_keywords(self):
+    def test_keywords_1(self):
         a = """\
             def stuff(**kw):
                 return 4, 2
@@ -319,38 +327,41 @@ class TestFixAnnotate3(FixerTestCase):
             """
         self.check(a, b)
 
-        a1 = """\
+    def test_keywords_2(self):
+        a = """\
             def stuff(a, **kw):
                 return 4, 2
             """
-        b1 = """\
+        b = """\
             from typing import Any
             def stuff(a: Any, **kw: Any) -> Any:
                 return 4, 2
             """
-        self.check(a1, b1)
+        self.check(a, b)
 
-        a2 = """\
+    def test_keywords_3(self):
+        a = """\
             def stuff(a, *b, **kw):
                 return 4, 2
             """
-        b2 = """\
+        b = """\
             from typing import Any
             def stuff(a: Any, *b: Any, **kw: Any) -> Any:
                 return 4, 2
             """
-        self.check(a2, b2)
+        self.check(a, b)
 
-        a3 = """\
+    def test_keywords_4(self):
+        a = """\
             def stuff(*b, **kw):
                 return 4, 2
             """
-        b3 = """\
+        b = """\
             from typing import Any
             def stuff(*b: Any, **kw: Any) -> Any:
                 return 4, 2
             """
-        self.check(a3, b3)
+        self.check(a, b)
 
     def test_no_return_expr(self):
         a = """\
@@ -480,9 +491,6 @@ class TestFixAnnotate3(FixerTestCase):
             pass
             """
         self.check(a, b)
-
-
-class TestIdemPotency(TestFixAnnotate3):
 
     def test_idempotency_long_1arg(self):
         a = """\
