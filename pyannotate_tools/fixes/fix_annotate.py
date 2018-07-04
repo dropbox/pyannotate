@@ -145,7 +145,9 @@ class FixAnnotate(BaseFix):
         #   ]
         #   [
         #     + STAR '*'
+        #     [
         #     + NAME star argument name
+        #     ]
         #   ]
         #   [
         #     + COMMA ','
@@ -174,6 +176,8 @@ class FixAnnotate(BaseFix):
                 # *arg part
                 argstyle = 'star'
                 ch = next(it)
+                if ch.type == token.COMMA:
+                    continue
             elif ch.type == token.DOUBLESTAR:
                 # *arg part
                 argstyle = 'keyword'
