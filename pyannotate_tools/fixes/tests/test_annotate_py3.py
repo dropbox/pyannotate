@@ -119,7 +119,31 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def incr(arg: int=0) -> Any:
+            def incr(arg: int = 0) -> Any:
+                return arg+1
+            """
+        self.check(a, b)
+
+    def test_one_arg_3(self):
+        a = """\
+            def incr( arg=0 ):
+                return arg+1
+            """
+        b = """\
+            from typing import Any
+            def incr( arg: int = 0 ) -> Any:
+                return arg+1
+            """
+        self.check(a, b)
+
+    def test_one_arg_4(self):
+        a = """\
+            def incr( arg = 0 ):
+                return arg+1
+            """
+        b = """\
+            from typing import Any
+            def incr( arg: int = 0 ) -> Any:
                 return arg+1
             """
         self.check(a, b)
@@ -143,7 +167,7 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def add(arg1: int=0, arg2: float=0.1) -> Any:
+            def add(arg1: int = 0, arg2: float = 0.1) -> Any:
                 return arg1+arg2
             """
         self.check(a, b)
@@ -155,9 +179,21 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def add(arg1: Any, arg2: float=0.1) -> Any:
+            def add(arg1: Any, arg2: float = 0.1) -> Any:
                 return arg1+arg2
             """
+
+    def test_two_args_4(self):
+        a = """\
+            def add(arg1, arg2 = 0.1):
+                return arg1+arg2
+            """
+        b = """\
+            from typing import Any
+            def add(arg1: Any, arg2: float = 0.1) -> Any:
+                return arg1+arg2
+            """
+        self.check(a, b)
         self.check(a, b)
 
     def test_defaults_1(self):
@@ -167,7 +203,7 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def foo(iarg: int=0, farg: float=0.0, sarg: str='', uarg: unicode=u'', barg: bool=False) -> Any:
+            def foo(iarg: int = 0, farg: float = 0.0, sarg: str = '', uarg: unicode = u'', barg: bool = False) -> Any:
                 return 42
             """
         self.check(a, b)
@@ -179,7 +215,7 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def foo(iarg: int=0, farg: float=0.0, sarg: str='', uarg: unicode=u'', barg: bool=False, targ: Any=(1,2,3)) -> Any:
+            def foo(iarg: int = 0, farg: float = 0.0, sarg: str = '', uarg: unicode = u'', barg: bool = False, targ: Any = (1,2,3)) -> Any:
                 return 42
             """
         self.check(a, b)
@@ -191,7 +227,7 @@ class TestFixAnnotate3(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def foo(iarg: int=0, farg: Any, sarg: str='', uarg: Any, barg: bool=False, targ: Any=(1,2,3)) -> Any:
+            def foo(iarg: int = 0, farg: Any, sarg: str = '', uarg: Any, barg: bool = False, targ: Any = (1,2,3)) -> Any:
                 return 42
             """
         self.check(a, b)
@@ -437,7 +473,7 @@ class TestFixAnnotate3(FixerTestCase):
                 return
             """
         b = """\
-            def nop(arg: int=0) -> None:
+            def nop(arg: int = 0) -> None:
                 return
             """
         self.check(a, b)
@@ -453,7 +489,7 @@ class TestFixAnnotate3(FixerTestCase):
         b = """\
             from typing import Any
             def nop(arg0: Any, arg1: Any, arg2: Any, arg3: Any, arg4: Any,
-                    arg5: Any, arg6: Any, arg7: Any, arg8: int=0, arg9: str='',
+                    arg5: Any, arg6: Any, arg7: Any, arg8: int = 0, arg9: str = '',
                     *args: Any, **kwds: Any) -> None:
                 return
             """
@@ -469,7 +505,7 @@ class TestFixAnnotate3(FixerTestCase):
         b = """\
             from typing import Any
             def nop(arg0: Any, arg1: Any, arg2: Any, arg3: Any, arg4: Any, arg5: Any, arg6: Any,
-                    arg7: Any=None, arg8: int=0, arg9: str='', arg10: bool=False,) -> None:
+                    arg7: Any = None, arg8: int = 0, arg9: str = '', arg10: bool = False,) -> None:
                 return
             """
         self.check(a, b)

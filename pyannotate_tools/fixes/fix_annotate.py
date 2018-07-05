@@ -242,6 +242,16 @@ class FixAnnotate(BaseFix):
                 chtype = chtype[2:]
             ch.value = '%s: %s' % (ch.value, chtype)
 
+            # put spaces around the equal sign
+            if ch.next_sibling and ch.next_sibling.type == token.EQUAL:
+                nextch = ch.next_sibling
+                if not nextch.prefix[:1].isspace():
+                    nextch.prefix = ' ' + nextch.prefix
+                nextch = nextch.next_sibling
+                assert nextch != None
+                if not nextch.prefix[:1].isspace():
+                    nextch.prefix = ' ' + nextch.prefix
+
         # Add return annotation
         rpar = results['rpar']
         rpar.value = '%s -> %s' % (rpar.value, restype)
