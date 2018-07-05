@@ -25,7 +25,8 @@ Question: should we always default to pyhon2 annotations, or should we
 	- no match a between version of python executing pyannotate and annotation style to generate
 	- could be pyannotate run with python 3, generating python 2 style annotations
 
-4.a. Convert python 2 annotations to python 3
+4. 
+    a. Convert python 2 annotations to python 3
 	- run pyannotate in special mode:
 		+ collect existing py2 type annotations
 		+ remove py2 type annotations
@@ -35,7 +36,7 @@ Question: should we always default to pyhon2 annotations, or should we
 	- pyannotate may be run with python 2 or python 3, but most likely python 2
 
 
-4.b. Convert python 3 annotations to python 2
+    b. Convert python 3 annotations to python 2
 	- do the opposite of 4.a.
 	- pyannotate may be run with python 2 or python 3, but most likely python 3
 
@@ -51,35 +52,35 @@ NOTES:
 
 TODO Short Term:
 ================
-x command-line argument for python 3 mode
-x merge pyannotate3 into pyannotate
-x convert test_annotate_json.py to test_annotate_json_py3
-x rename test_annotate[3] to _py2 and py3 versions
-x annnotation + default value: add space aroundt the '='
-x list use cases
+- [x] command-line argument for python 3 mode
+- [x] merge pyannotate3 into pyannotate
+- [x] convert test_annotate_json.py to test_annotate_json_py3
+- [x] rename test_annotate[3] to _py2 and py3 versions
+- [x] annnotation + default value: add space aroundt the '='
+- [x] list use cases
 
 
 TODO Middle-term:
 =================
-- add code coverage reporting
-- add type annotation
-- verify code with mypy in strict mode
-- improve documentation
-- support python 3 code
-- provide scripts with shorter names and easier to use imports
+- [ ] add code coverage reporting
+- [ ] add type annotation
+- [ ] verify code with mypy in strict mode
+- [ ] improve documentation
+- [ ] support python 3 code
+- [ ] provide scripts with shorter names and easier to use imports
 
 
 TODO Long Term:
 ===============
-- fix tests related to stderr in pyannotate_tools/tests/dundermain_test.py 
-- current fixer does not detect new style classes
-- only Any is added at the start of the import statements
-- in python3 mode, type unicode should be str
-- add a fixer for 2to3
-- add a plugin for PyCharm
-- convert annotations to python 3 style
-- accept multiple sources of annotations info
-- extend the default value analysis for annotations
+- [ ] fix tests related to stderr in pyannotate_tools/tests/dundermain_test.py 
+- [ ] current fixer does not detect new style classes
+- [ ] only Any is added at the start of the import statements
+- [ ] in python3 mode, type unicode should be str
+- [ ] add a fixer for 2to3
+- [ ] add a plugin for PyCharm
+- [ ] convert annotations to python 3 style
+- [ ] accept multiple sources of annotations info
+- [ ] extend the default value analysis for annotations
 
 
 
