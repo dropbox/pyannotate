@@ -34,12 +34,12 @@ parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
 parser.add_argument('-s', '--only-simple', action='store_true',
                     help="Only annotate functions with trivial types")
-parser.add_argument('--python-version', action='store',
+parser.add_argument('--python-version', action='store', default='2',
                     help='''Choose annotation style, 2 for Python 2 with comments (the 
                          default), 3 for Python 3 with direct annotation''' )
-parser.add_argument('--py2', '-2', action='store_true',
+parser.add_argument('--py2', '-2', action='store_const', dest='python_version', const='2',
                     help='''Annotate for Python 2 with comments (default)''')
-parser.add_argument('--py3', '-3', action='store_true',
+parser.add_argument('--py3', '-3', action='store_const', dest='python_version', const='3',
                     help='''Annotate for Python 3 with argument and return value annotations''')
 
 
@@ -93,15 +93,10 @@ def main(args_override=None):
     except OSError as err:
         sys.exit("Can't open type info file: %s" % err)
 
-    if args.python_version not in (None, '2','3'):
+    if args.python_version not in ('2', '3'):
         sys.exit('--python-version must be 2 or 3')
 
-    if (args.py2 and args.py3) or (args.py2 and args.python_version) or (args.py3 and args.python_version):
-        sys.exit('You can not use multiple annotation version specifier')
-
-    annotation_style = 'py2'
-    if args.py3 or args.python_version == '3':
-        annotation_style = 'py3'
+    annotation_style = 'py' + args.python_version
 
     # Set up logging handler.
     level = logging.DEBUG if args.verbose else logging.INFO
