@@ -116,7 +116,8 @@ def main(args_override=None):
     else:
         FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
-    flags = {'print_function': args.print_function, 'annotation_style': annotation_style}
+    flags = {'print_function': args.print_function,
+             'annotation_style': annotation_style}
     rt = ModifiedRefactoringTool(
         fixers=fixers,
         options=flags,

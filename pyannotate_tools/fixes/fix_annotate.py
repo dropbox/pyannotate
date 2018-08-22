@@ -99,7 +99,7 @@ class FixAnnotate(BaseFix):
 
         # Python 3 style return annotation are already skipped by the pattern
 
-        ### Python 3 style argument annotation
+        ### Python 3 style argument annotation structure
         #
         # Structure of the arguments tokens for one positional argument without default value :
         # + LPAR '('
@@ -177,9 +177,9 @@ class FixAnnotate(BaseFix):
         argtypes, restype = annot
 
         if self.options['annotation_style'] == 'py3':
-            self.add_py3_annot( argtypes, restype, node, results)
+            self.add_py3_annot(argtypes, restype, node, results)
         else:
-            self.add_py2_annot( argtypes, restype, node, results)
+            self.add_py2_annot(argtypes, restype, node, results)
 
         # Common to py2 and py3 style annotations:
         if FixAnnotate.counter is not None:
@@ -188,8 +188,7 @@ class FixAnnotate(BaseFix):
         # Also add 'from typing import Any' at the top if needed.
         self.patch_imports(argtypes + [restype], node)
 
-
-    def add_py3_annot( self, argtypes, restype, node, results):
+    def add_py3_annot(self, argtypes, restype, node, results):
         args = results.get('args')
 
         argleaves = []
@@ -198,7 +197,7 @@ class FixAnnotate(BaseFix):
             it = iter([])
         elif len(args.children) == 0:
             # function with 1 argument
-            it = iter( [ args ] )
+            it = iter([args])
         else:
             # function with multiple arguments or 1 arg with default value
             it = iter(args.children)
@@ -216,7 +215,7 @@ class FixAnnotate(BaseFix):
                 argstyle = 'keyword'
                 ch = next(it)
             assert ch.type == token.NAME
-            argleaves.append( (argstyle, ch) )
+            argleaves.append((argstyle, ch))
             try:
                 ch = next(it)
                 if ch.type == token.EQUAL:
@@ -228,7 +227,7 @@ class FixAnnotate(BaseFix):
                 break
 
         # when self or cls is not annotated, argleaves == argtypes+1
-        argleaves = argleaves[ len(argleaves)-len(argtypes): ]
+        argleaves = argleaves[len(argleaves) - len(argtypes):]
 
         for ch_withstyle, chtype in zip(argleaves, argtypes):
             style, ch = ch_withstyle
@@ -258,19 +257,18 @@ class FixAnnotate(BaseFix):
 
         rpar.changed()
 
-    def add_py2_annot( self, argtypes, restype, node, results):
-        ### Python 2 style annotation
-        #
+    def add_py2_annot(self, argtypes, restype, node, results):
         children = results['suite'][0].children
 
         # Insert '# type: {annot}' comment.
         # For reference, see lib2to3/fixes/fix_tuple_params.py in stdlib.
         if len(children) >= 1 and children[0].type != token.NEWLINE:
-                # one liner function
+            # one liner function
             if children[0].prefix.strip() == '':
                 children[0].prefix = ''
                 children.insert(0, Leaf(token.NEWLINE, '\n'))
-                children.insert(1, Leaf(token.INDENT, find_indentation(node) + '    '))
+                children.insert(
+                    1, Leaf(token.INDENT, find_indentation(node) + '    '))
                 children.append(Leaf(token.DEDENT, ''))
         if len(children) >= 2 and children[1].type == token.INDENT:
             degen_str = '(...) -> %s' % restype
@@ -383,7 +381,7 @@ class FixAnnotate(BaseFix):
                     else:
                         # Always skip the first argument if it's named 'self'.
                         # Always skip the first argument of a class method.
-                        if  child.value == 'self' or 'classmethod' in decorators:
+                        if child.value == 'self' or 'classmethod' in decorators:
                             pass
                         else:
                             inferred_type = 'Any'
