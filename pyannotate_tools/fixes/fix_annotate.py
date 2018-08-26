@@ -5,15 +5,14 @@ This transforms e.g.
   def foo(self, bar, baz=12):
       return bar + baz
 
-into:
+into a type annoted version:
 
-- with options {'annotation_style'='py2'} :
 	  def foo(self, bar, baz=12):
 	      # type: (Any, int) -> Any            # noqa: F821
 	      return bar + baz
 
+or (when setting options['annotation_style'] to 'py3'):
 
-- with options {'annotation_style'='py3'} :
 	  def foo(self, bar : Any, baz : int=12) -> Any:
 	      return bar + baz
 
