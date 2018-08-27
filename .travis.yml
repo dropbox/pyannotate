@@ -21,7 +21,7 @@ matrix:
   
 install:
     - pip install -r requirements.txt
-    - if [[ $USE_MYPY == true ]]; then pip install -U "mypy<0.620"; fi
+    - if [[ $USE_MYPY == true ]]; then pip install -U "mypy==0.610"; fi
 script:
     - pytest
     - if [[ $USE_MYPY == true ]]; then mypy pyannotate_*; fi
