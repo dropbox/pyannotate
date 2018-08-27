@@ -49,6 +49,7 @@ from typing import (
     Set,
     Sized,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
@@ -110,7 +111,7 @@ class FakeIterator(Iterable[Any], Sized):
         return len(self.values)
 
 
-_NONE_TYPE = type(None)
+_NONE_TYPE = type(None)  # type: Type[None]
 InternalType = Union['DictType', 'ListType', 'TupleType', 'SetType', 'IteratorType', 'type']
 
 
