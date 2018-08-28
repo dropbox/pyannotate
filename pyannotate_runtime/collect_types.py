@@ -33,7 +33,7 @@ import threading
 from inspect import ArgInfo
 from threading import Thread
 
-from mypy_extensions import TypedDict
+from mypy_extensions import TypedDict, Type  # for Python 3.5.1 compatibility
 from six import iteritems
 from six.moves import range
 from six.moves.queue import Queue  # type: ignore  # No library stub yet
@@ -49,7 +49,6 @@ from typing import (
     Set,
     Sized,
     Tuple,
-    Type,
     TypeVar,
     Union,
 )
