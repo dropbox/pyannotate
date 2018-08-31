@@ -54,6 +54,13 @@ from typing import (
 )
 from contextlib import contextmanager
 
+MYPY=False  
+if MYPY:
+    # MYPY is True when mypy is running
+    # 'Type' is only required for running mypy, not for running pyannotate
+    from typing import Type
+
+
 # pylint: disable=invalid-name
 
 CO_GENERATOR = inspect.CO_GENERATOR  # type: ignore
