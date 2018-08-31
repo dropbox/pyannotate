@@ -49,11 +49,17 @@ from typing import (
     Set,
     Sized,
     Tuple,
-    Type,
     TypeVar,
     Union,
 )
 from contextlib import contextmanager
+
+MYPY=False  
+if MYPY:
+    # MYPY is True when mypy is running
+    # 'Type' is only required for running mypy, not for running pyannotate
+    from typing import Type
+
 
 # pylint: disable=invalid-name
 

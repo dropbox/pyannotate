@@ -1,14 +1,27 @@
 language: python
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5.1"  # Special, it doesn't have typing.Text
-  - "3.5"  # Latest, e.g. 3.5.4
-  - "3.6"
-  - "3.7-dev"
+cache: pip
+matrix:
+    include:
+        - python: '2.7'
+        - python: '3.4'
+        - python: '3.5.1'     # Special, it doesn't have typing.Text
+        - python: '3.5'       # Latest, e.g. 3.5.4
+        - python: '3.6'
+          env: USE_MYPY=true
+        - python: '3.7'
+          dist: xenial        # needed because Python 3.7 is broken on travis CI Trusty
+          sudo: true
+          env: USE_MYPY=true
+        - python: '3.8-dev'
+          dist: xenial        # needed because Python 3.8 is broken on travis CI Trusty
+          sudo: true
+          env: USE_MYPY=true
+    allow_failures:
+        - python: 3.8-dev
+  
 install:
-  - pip install -r requirements.txt
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then pip install -U mypy; fi
+    - pip install -r requirements.txt
+    - if [[ $USE_MYPY == true ]]; then pip install -U mypy; fi
 script:
-  - pytest
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then mypy pyannotate_*; fi
+    - pytest
+    - if [[ $USE_MYPY == true ]]; then mypy pyannotate_*; fi
