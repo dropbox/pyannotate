@@ -16,6 +16,7 @@ class TestFixAnnotateJson(FixerTestCase):
         super(TestFixAnnotateJson, self).setUp(
             fix_list=["annotate_json"],
             fixer_pkg="pyannotate_tools",
+            options={'annotation_style' : 'py3'},
         )
         # See https://bugs.python.org/issue14243 for details
         self.tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
@@ -53,8 +54,7 @@ class TestFixAnnotateJson(FixerTestCase):
             from typing import Any
             class Foo: pass
             class Bar: pass
-            def nop(foo, bar):
-                # type: (Foo, Bar) -> Any
+            def nop(foo: Foo, bar: Bar) -> Any:
                 return 42
             """
         self.check(a, b)
@@ -78,8 +78,7 @@ class TestFixAnnotateJson(FixerTestCase):
             from typing import Any
             class Foo: pass
             class Bar: pass
-            def nop(foo, *, bar):
-                # type: (Foo, Bar) -> Any
+            def nop(foo: Foo, *, bar: Bar) -> Any:
                 return 42
             """
         self.check(a, b)
@@ -102,8 +101,7 @@ class TestFixAnnotateJson(FixerTestCase):
             from typing import AnyStr
             from typing import Callable
             from typing import List
-            def nop(foo, bar):
-                # type: (List[AnyStr], Callable[[], int]) -> object
+            def nop(foo: List[AnyStr], bar: Callable[[], int]) -> object:
                 return 42
             """
         self.check(a, b)
@@ -125,8 +123,7 @@ class TestFixAnnotateJson(FixerTestCase):
         b = """\
             from mod2 import OtherClass
             from mod3 import AnotherClass
-            def nop(foo, bar):
-                # type: (MyClass, OtherClass) -> AnotherClass
+            def nop(foo: MyClass, bar: OtherClass) -> AnotherClass:
                 return AnotherClass()
             class MyClass: pass
             """
@@ -147,8 +144,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def nop(foo, **kwds):
-                # type: (int, **Any) -> object
+            def nop(foo: int, **kwds: Any) -> object:
                 return 42
             """
         self.check(a, b)
@@ -168,8 +164,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             from typing import AnyStr
-            def nop(foo, **kwds):
-                # type: (int, **AnyStr) -> object
+            def nop(foo: int, **kwds: AnyStr) -> object:
                 return 42
             """
         self.check(a, b)
@@ -189,8 +184,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def nop(foo, *args):
-                # type: (int, *Any) -> object
+            def nop(foo: int, *args: Any) -> object:
                 return 42
             """
         self.check(a, b)
@@ -209,8 +203,7 @@ class TestFixAnnotateJson(FixerTestCase):
                 return 42
             """
         b = """\
-            def nop(foo, *args):
-                # type: (int, *int) -> object
+            def nop(foo: int, *args: int) -> object:
                 return 42
             """
         self.check(a, b)
@@ -231,8 +224,7 @@ class TestFixAnnotateJson(FixerTestCase):
         b = """\
             from typing import Any
             from typing import Optional
-            def nop():
-                # type: () -> Optional[Any]
+            def nop() -> Optional[Any]:
                 return 0
             """
         self.check(a, b)
@@ -251,8 +243,7 @@ class TestFixAnnotateJson(FixerTestCase):
                 return
             """
         b = """\
-            def nop():
-                # type: () -> None
+            def nop() -> None:
                 return
             """
         self.check(a, b)
@@ -272,8 +263,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             from typing import Iterator
-            def gen():
-                # type: () -> Iterator[int]
+            def gen() -> Iterator[int]:
                 yield 42
             """
         self.check(a, b)
@@ -293,8 +283,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             from typing import Iterator
-            def gen():
-                # type: () -> Iterator[int]
+            def gen() -> Iterator[int]:
                 yield 42
             """
         self.check(a, b)
@@ -314,8 +303,7 @@ class TestFixAnnotateJson(FixerTestCase):
                     yield 42
             """
         b = """\
-            def nop():
-                # type: () -> int
+            def nop() -> int:
                 def gen():
                     yield 42
             """
@@ -336,8 +324,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             from typing import Any
-            def nop(self):
-                # type: (Any) -> int
+            def nop(self: Any) -> int:
                 pass
             """
         self.check(a, b)
@@ -358,8 +345,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         b = """\
             class C:
-                def nop(self):
-                    # type: () -> int
+                def nop(self) -> int:
                     pass
             """
         self.check(a, b)
@@ -428,8 +414,7 @@ class TestFixAnnotateJson(FixerTestCase):
         b = """\
             class C:
                 @classmethod
-                def nop(cls, a):
-                    # type: (int) -> int
+                def nop(cls, a: int) -> int:
                     return a
             """
         self.check(a, b)
@@ -453,8 +438,7 @@ class TestFixAnnotateJson(FixerTestCase):
         b = """\
             class C:
                 @staticmethod
-                def nop(a):
-                    # type: (int) -> int
+                def nop(a: int) -> int:
                     return a
             """
         self.check(a, b)
@@ -482,18 +466,10 @@ class TestFixAnnotateJson(FixerTestCase):
             from typing import Any
             from typing import Optional
             from typing import Union
-            def nop(a,  # type: int
-                    b,  # type: int
-                    c,  # type: int  # some comment
-                    d,  # type: str
-                    e,  # type: str
-                    f,  # type: str  # multi-line
+            def nop(a: int, b: int, c: int,  # some comment
+                    d: str, e: str, f: str,  # multi-line
                               # comment
-                    g=None,  # type: Optional[bool]
-                    h=0,  # type: Union[int, str]
-                    *args  # type: Any
-                    ):
-                # type: (...) -> int
+                    g: Optional[bool] = None, h: Union[int, str] = 0, *args: Any) -> int:
                 return 0
             """
         self.check(a, b)
@@ -523,19 +499,10 @@ class TestFixAnnotateJson(FixerTestCase):
             from typing import Optional
             from typing import Union
             class C:
-                def nop(self,
-                        a,  # type: int
-                        b,  # type: int
-                        c,  # type: int  # some comment
-                        d,  # type: str
-                        e,  # type: str
-                        f,  # type: str  # multi-line
+                def nop(self, a: int, b: int, c: int,  # some comment
+                              d: str, e: str, f: str,  # multi-line
                                         # comment
-                        g=None,  # type: Optional[bool]
-                        h=0,  # type: Union[int, str]
-                        *args  # type: Any
-                        ):
-                    # type: (...) -> int
+                              g: Optional[bool] = None, h: Union[int, str] = 0, *args: Any) -> int:
                     return 0
             """
         self.check(a, b)
@@ -566,18 +533,9 @@ class TestFixAnnotateJson(FixerTestCase):
             from typing import Union
             class C:
                 @classmethod
-                def nop(cls,
-                        a,  # type: int
-                        b,  # type: int
-                        c,  # type: int  # some comment
-                        d,  # type: str
-                        e,  # type: str
-                        f,  # type: str
-                        g=None,  # type: Optional[bool]
-                        h=0,  # type: Union[int, str]
-                        *args  # type: Any
-                        ):
-                    # type: (...) -> int
+                def nop(cls, a: int, b: int, c: int,  # some comment
+                        d: str, e: str, f: str,
+                        g: Optional[bool] = None, h: Union[int, str] = 0, *args: Any) -> int:
                     return 0
             """
         self.check(a, b)
@@ -607,16 +565,9 @@ class TestFixAnnotateJson(FixerTestCase):
         b = """\
             from typing import Optional
             from typing import Union
-            def nop(a,  # type: int
-                    b,  # type: int
-                    c,  # type: int  # some comment
-                    d,  # type: str
-                    e,  # type: str
-                    f,  # type: str
-                    g=None,  # type: Optional[bool]
-                    h=0,  # type: Union[int, str]
-                    ):
-                # type: (...) -> int
+            def nop(a: int, b: int, c: int,  # some comment
+                    d: str, e: str, f: str,
+                    g: Optional[bool] = None, h: Union[int, str] = 0) -> int:
                 return 0
             """
         self.check(a, b)
@@ -634,8 +585,6 @@ class TestFixAnnotateJson(FixerTestCase):
             def nop(a):   return a
             """
         b = """\
-            def nop(a):
-                # type: (int) -> int
-                return a
+            def nop(a: int) -> int:   return a
             """
         self.check(a, b)

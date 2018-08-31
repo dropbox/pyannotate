@@ -34,6 +34,13 @@ parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
 parser.add_argument('-s', '--only-simple', action='store_true',
                     help="Only annotate functions with trivial types")
+parser.add_argument('--python-version', action='store', default='2',
+                    help="Choose annotation style, 2 for Python 2 with comments (the "
+                         "default), 3 for Python 3 with annotation syntax" )
+parser.add_argument('--py2', '-2', action='store_const', dest='python_version', const='2',
+                    help="Annotate for Python 2 with comments (default)")
+parser.add_argument('--py3', '-3', action='store_const', dest='python_version', const='3',
+                    help="Annotate for Python 3 with argument and return value annotations")
 
 
 class ModifiedRefactoringTool(StdoutRefactoringTool):
@@ -86,6 +93,11 @@ def main(args_override=None):
     except OSError as err:
         sys.exit("Can't open type info file: %s" % err)
 
+    if args.python_version not in ('2', '3'):
+        sys.exit('--python-version must be 2 or 3')
+
+    annotation_style = 'py' + args.python_version
+
     # Set up logging handler.
     level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format='%(message)s', level=level)
@@ -104,7 +116,8 @@ def main(args_override=None):
     else:
         FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
-    flags = {'print_function': args.print_function}
+    flags = {'print_function': args.print_function,
+             'annotation_style': annotation_style}
     rt = ModifiedRefactoringTool(
         fixers=fixers,
         options=flags,

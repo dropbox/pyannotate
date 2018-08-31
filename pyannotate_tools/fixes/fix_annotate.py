@@ -5,11 +5,17 @@ This transforms e.g.
   def foo(self, bar, baz=12):
       return bar + baz
 
-into
+into a type annoted version:
 
-  def foo(self, bar, baz=12):
-      # type: (Any, int) -> Any            # noqa: F821
-      return bar + baz
+	  def foo(self, bar, baz=12):
+	      # type: (Any, int) -> Any            # noqa: F821
+	      return bar + baz
+
+or (when setting options['annotation_style'] to 'py3'):
+
+	  def foo(self, bar : Any, baz : int = 12) -> Any:
+	      return bar + baz
+
 
 It does not do type inference but it recognizes some basic default
 argument values such as numbers and strings (and assumes their type
@@ -46,7 +52,7 @@ class FixAnnotate(BaseFix):
 
     # The pattern to match.
     PATTERN = """
-              funcdef< 'def' name=any parameters=parameters< '(' [args=any] ')' > ':' suite=any+ >
+              funcdef< 'def' name=any parameters=parameters< '(' [args=any] rpar=')' > ':' suite=any+ >
               """
 
     _maxfixes = os.getenv('MAXFIXES')
@@ -69,8 +75,7 @@ class FixAnnotate(BaseFix):
                 if ch.prefix.lstrip().startswith('# type:'):
                     return
 
-        suite = results['suite']
-        children = suite[0].children
+        children = results['suite'][0].children
 
         # NOTE: I've reverse-engineered the structure of the parse tree.
         # It's always a list of nodes, the first of which contains the
@@ -91,21 +96,180 @@ class FixAnnotate(BaseFix):
             if ch.prefix.lstrip().startswith('# type:'):
                 return  # There's already a # type: comment here; don't change anything.
 
+        # Python 3 style return annotation are already skipped by the pattern
+
+        ### Python 3 style argument annotation structure
+        #
+        # Structure of the arguments tokens for one positional argument without default value :
+        # + LPAR '('
+        # + NAME_NODE_OR_LEAF arg1
+        # + RPAR ')'
+        #
+        # NAME_NODE_OR_LEAF is either:
+        # 1. Just a leaf with value NAME
+        # 2. A node with children: NAME, ':", node expr or value leaf
+        #
+        # Structure of the arguments tokens for one args with default value or multiple
+        # args, with or without default value, and/or with extra arguments :
+        # + LPAR '('
+        # + node
+        #   [
+        #     + NAME_NODE_OR_LEAF
+        #      [
+        #        + EQUAL '='
+        #        + node expr or value leaf
+        #      ]
+        #    (
+        #        + COMMA ','
+        #        + NAME_NODE_OR_LEAF positional argn
+        #      [
+        #        + EQUAL '='
+        #        + node expr or value leaf
+        #      ]
+        #    )*
+        #   ]
+        #   [
+        #     + STAR '*'
+        #     [
+        #     + NAME_NODE_OR_LEAF positional star argument name
+        #     ]
+        #   ]
+        #   [
+        #     + COMMA ','
+        #     + DOUBLESTAR '**'
+        #     + NAME_NODE_OR_LEAF positional keyword argument name
+        #   ]
+        # + RPAR ')'
+
+        # Let's skip Python 3 argument annotations
+        it = iter(args.children) if args else iter([])
+        for ch in it:
+            if ch.type == token.STAR:
+                # *arg part
+                ch = next(it)
+                if ch.type == token.COMMA:
+                    continue
+            elif ch.type == token.DOUBLESTAR:
+                # *arg part
+                ch = next(it)
+            if ch.type > 256:
+                # this is a node, therefore an annotation
+                assert ch.children[0].type == token.NAME
+                return
+            try:
+                ch = next(it)
+                if ch.type == token.COLON:
+                    # this is an annotation
+                    return
+                elif ch.type == token.EQUAL:
+                    ch = next(it)
+                    ch = next(it)
+                assert ch.type == token.COMMA
+                continue
+            except StopIteration:
+                break
+
         # Compute the annotation
         annot = self.make_annotation(node, results)
         if annot is None:
             return
+        argtypes, restype = annot
+
+        if self.options['annotation_style'] == 'py3':
+            self.add_py3_annot(argtypes, restype, node, results)
+        else:
+            self.add_py2_annot(argtypes, restype, node, results)
+
+        # Common to py2 and py3 style annotations:
+        if FixAnnotate.counter is not None:
+            FixAnnotate.counter -= 1
+
+        # Also add 'from typing import Any' at the top if needed.
+        self.patch_imports(argtypes + [restype], node)
+
+    def add_py3_annot(self, argtypes, restype, node, results):
+        args = results.get('args')
+
+        argleaves = []
+        if args is None:
+            # function with 0 arguments
+            it = iter([])
+        elif len(args.children) == 0:
+            # function with 1 argument
+            it = iter([args])
+        else:
+            # function with multiple arguments or 1 arg with default value
+            it = iter(args.children)
+
+        for ch in it:
+            argstyle = 'name'
+            if ch.type == token.STAR:
+                # *arg part
+                argstyle = 'star'
+                ch = next(it)
+                if ch.type == token.COMMA:
+                    continue
+            elif ch.type == token.DOUBLESTAR:
+                # *arg part
+                argstyle = 'keyword'
+                ch = next(it)
+            assert ch.type == token.NAME
+            argleaves.append((argstyle, ch))
+            try:
+                ch = next(it)
+                if ch.type == token.EQUAL:
+                    ch = next(it)
+                    ch = next(it)
+                assert ch.type == token.COMMA
+                continue
+            except StopIteration:
+                break
+
+        # when self or cls is not annotated, argleaves == argtypes+1
+        argleaves = argleaves[len(argleaves) - len(argtypes):]
+
+        for ch_withstyle, chtype in zip(argleaves, argtypes):
+            style, ch = ch_withstyle
+            if style == 'star':
+                assert chtype[0] == '*'
+                assert chtype[1] != '*'
+                chtype = chtype[1:]
+            elif style == 'keyword':
+                assert chtype[0:2] == '**'
+                assert chtype[2] != '*'
+                chtype = chtype[2:]
+            ch.value = '%s: %s' % (ch.value, chtype)
+
+            # put spaces around the equal sign
+            if ch.next_sibling and ch.next_sibling.type == token.EQUAL:
+                nextch = ch.next_sibling
+                if not nextch.prefix[:1].isspace():
+                    nextch.prefix = ' ' + nextch.prefix
+                nextch = nextch.next_sibling
+                assert nextch != None
+                if not nextch.prefix[:1].isspace():
+                    nextch.prefix = ' ' + nextch.prefix
+
+        # Add return annotation
+        rpar = results['rpar']
+        rpar.value = '%s -> %s' % (rpar.value, restype)
+
+        rpar.changed()
+
+    def add_py2_annot(self, argtypes, restype, node, results):
+        children = results['suite'][0].children
 
         # Insert '# type: {annot}' comment.
         # For reference, see lib2to3/fixes/fix_tuple_params.py in stdlib.
         if len(children) >= 1 and children[0].type != token.NEWLINE:
+            # one liner function
             if children[0].prefix.strip() == '':
                 children[0].prefix = ''
                 children.insert(0, Leaf(token.NEWLINE, '\n'))
-                children.insert(1, Leaf(token.INDENT, find_indentation(node) + '    '))
+                children.insert(
+                    1, Leaf(token.INDENT, find_indentation(node) + '    '))
                 children.append(Leaf(token.DEDENT, ''))
         if len(children) >= 2 and children[1].type == token.INDENT:
-            argtypes, restype = annot
             degen_str = '(...) -> %s' % restype
             short_str = '(%s) -> %s' % (', '.join(argtypes), restype)
             if (len(short_str) > 64 or len(argtypes) > 5) and len(short_str) > len(degen_str):
@@ -116,11 +280,6 @@ class FixAnnotate(BaseFix):
             children[1].prefix = '%s# type: %s\n%s' % (children[1].value, annot_str,
                                                        children[1].prefix)
             children[1].changed()
-            if FixAnnotate.counter is not None:
-                FixAnnotate.counter -= 1
-
-            # Also add 'from typing import Any' at the top if needed.
-            self.patch_imports(argtypes + [restype], node)
         else:
             self.log_message("%s:%d: cannot insert annotation for one-line function" %
                              (self.filename, node.get_lineno()))
@@ -221,7 +380,7 @@ class FixAnnotate(BaseFix):
                     else:
                         # Always skip the first argument if it's named 'self'.
                         # Always skip the first argument of a class method.
-                        if  child.value == 'self' or 'classmethod' in decorators:
+                        if child.value == 'self' or 'classmethod' in decorators:
                             pass
                         else:
                             inferred_type = 'Any'
