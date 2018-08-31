@@ -13,7 +13,7 @@ into a type annoted version:
 
 or (when setting options['annotation_style'] to 'py3'):
 
-	  def foo(self, bar : Any, baz : int=12) -> Any:
+	  def foo(self, bar : Any, baz : int = 12) -> Any:
 	      return bar + baz
 
 
