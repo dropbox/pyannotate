@@ -588,3 +588,21 @@ class TestFixAnnotateJson(FixerTestCase):
             def nop(a: int) -> int:   return a
             """
         self.check(a, b)
+
+    def test_variadic(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 1,
+              "signature": {
+                  "arg_types": ["Tuple[int, ...]"],
+                  "return_type": "int"},
+              }])
+        a = """\
+            def nop(a):   return 0
+            """
+        b = """\
+            from typing import Tuple
+            def nop(a: Tuple[int, ...]) -> int:   return 0
+            """
+        self.check(a, b)

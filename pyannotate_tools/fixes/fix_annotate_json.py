@@ -279,6 +279,8 @@ class FixAnnotateJson(FixAnnotate):
         # Replace `pkg.mod.SomeClass` with `SomeClass`
         # and remember to import it.
         word = match.group()
+        if word == '...':
+            return word
         if '.' not in word:
             # Assume it's either builtin or from `typing`
             if word in typing_all:
