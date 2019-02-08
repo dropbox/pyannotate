@@ -48,7 +48,11 @@ def crawl_up(arg):
     """
     dir, mod = os.path.split(arg)
     mod = strip_py(mod) or mod
+    cwd = os.getcwd()
     while dir and get_init_file(dir):
+        if cwd == dir:
+            # we are somewhere in the tree and our json file is here
+            break
         dir, base = os.path.split(dir)
         if not base:
             break
