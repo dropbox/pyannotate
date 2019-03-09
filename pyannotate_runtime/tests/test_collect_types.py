@@ -102,6 +102,12 @@ class EventfulHappenings(object):
         return 1999
 
 
+# A class that is old style under python 2
+class OldStyleClass:
+    def foo(self, x):
+        # type: (Any) -> Any
+        return x
+
 def i_care_about_whats_happening(y, z):
     # type: (Any, Any) -> Any
     print_int(y)
@@ -306,6 +312,8 @@ class TestCollectTypes(TestBaseClass):
             problematic_dup(u'ha', False)
             problematic_dup(u'ha', False)
 
+            OldStyleClass().foo(10)
+
         # TODO(svorobev): add checks for the rest of the functions
         # print_int,
         self.assert_type_comments(
@@ -314,6 +322,8 @@ class TestCollectTypes(TestBaseClass):
         self.assert_type_comments(
             'do_work_clsmthd',
             ['(int, pyannotate_runtime.tests.test_collect_types.FooNamedTuple) -> EOFError'])
+        self.assert_type_comments('OldStyleClass.foo', ['(int) -> int'])
+
         # TODO: that could be better
         self.assert_type_comments('takes_different_lists', ['(List[Union[int, str]]) -> None'])
 
