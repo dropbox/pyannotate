@@ -479,7 +479,6 @@ def get_function_name_from_frame(frame):
                     mro = inst.__class__.__mro__
                 except AttributeError:
                     mro = None
-                else:
                     try:
                         bases = inst.__class__.__bases__
                     except AttributeError:
