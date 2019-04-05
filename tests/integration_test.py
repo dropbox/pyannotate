@@ -52,6 +52,27 @@ class IntegrationTest(unittest.TestCase):
         assert b'+    # type: () -> None' in lines
         assert b'+    # type: (int, int) -> int' in lines
 
+    def test_auto_any(self):
+        with open('gcd.py', 'w') as f:
+            f.write(example)
+        output = subprocess.check_output([sys.executable, '-m', 'pyannotate_tools.annotations', '-a', 'gcd.py'])
+        lines = output.splitlines()
+        assert b'+    # type: () -> None' in lines
+        assert b'+    # type: (Any, Any) -> Any' in lines
+
+    def test_no_type_info(self):
+        with open('gcd.py', 'w') as f:
+            f.write(example)
+        try:
+            subprocess.check_output([sys.executable, '-m', 'pyannotate_tools.annotations', 'gcd.py'],
+                                    stderr=subprocess.STDOUT)
+            assert False, "Expected an error"
+        except subprocess.CalledProcessError as err:
+            assert err.returncode == 1
+            lines = err.output.splitlines()
+            assert (b"Can't open type info file: "
+                    b"[Errno 2] No such file or directory: 'type_info.json'" in lines)
+
     def test_package(self):
         os.makedirs('foo')
         with open('foo/__init__.py', 'w') as f:
