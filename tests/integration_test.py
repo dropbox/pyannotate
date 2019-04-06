@@ -88,7 +88,6 @@ class IntegrationTest(unittest.TestCase):
         assert b'+    # type: () -> None' in lines
         assert b'+    # type: (int, int) -> int' in lines
 
-    @unittest.skip("Doesn't work yet")
     def test_subdir(self):
         os.makedirs('foo')
         with open('foo/gcd.py', 'w') as f:
