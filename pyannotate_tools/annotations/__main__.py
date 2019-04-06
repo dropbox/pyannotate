@@ -84,14 +84,11 @@ def dump_annotations(type_info, files):
 
 def main(args_override=None):
     # type: (Optional[List[str]]) -> None
+
     # Parse command line.
     args = parser.parse_args(args_override)
     if not args.files and not args.dump:
         parser.error("At least one file/directory is required")
-    try:
-        open(args.type_info).close()
-    except OSError as err:
-        sys.exit("Can't open type info file: %s" % err)
 
     if args.python_version not in ('2', '3'):
         sys.exit('--python-version must be 2 or 3')
@@ -106,16 +103,24 @@ def main(args_override=None):
         dump_annotations(args.type_info, args.files)
         return
 
-    # Run pass 2 with output into a variable.
-    data = generate_annotations_json_string(args.type_info,
-                                            only_simple=args.only_simple)  # type: List[Any]
-
-    # Run pass 3 with input from that variable.
     if args.auto_any:
         fixers = ['pyannotate_tools.fixes.fix_annotate']
     else:
+        # Produce nice error message if type_info.json not found.
+        try:
+            open(args.type_info).close()
+        except IOError as err:
+            sys.exit("Can't open type info file: %s" % err)
+
+        # Run pass 2 with output into a variable.
+        data = generate_annotations_json_string(
+            args.type_info,
+            only_simple=args.only_simple)  # type: List[Any]
+
+        # Run pass 3 with input from that variable.
         FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
+
     flags = {'print_function': args.print_function,
              'annotation_style': annotation_style}
     rt = ModifiedRefactoringTool(
