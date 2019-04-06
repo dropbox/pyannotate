@@ -88,7 +88,6 @@ class IntegrationTest(unittest.TestCase):
         assert b'+    # type: () -> None' in lines
         assert b'+    # type: (int, int) -> int' in lines
 
-    @unittest.skip("Doesn't work yet")
     def test_subdir(self):
         os.makedirs('foo')
         with open('foo/gcd.py', 'w') as f:
@@ -99,7 +98,9 @@ class IntegrationTest(unittest.TestCase):
             f.write('from gcd import main\n')
             f.write(driver)
         subprocess.check_call([sys.executable, 'driver.py'])
-        output = subprocess.check_output([sys.executable, '-m', 'pyannotate_tools.annotations', 'foo/gcd.py'])
+        output = subprocess.check_output([sys.executable, '-m', 'pyannotate_tools.annotations',
+                                          # Construct platform-correct pathname:
+                                          os.path.join('foo', 'gcd.py')])
         lines = output.splitlines()
         assert b'+    # type: () -> None' in lines
         assert b'+    # type: (int, int) -> int' in lines
