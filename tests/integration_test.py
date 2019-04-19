@@ -30,7 +30,7 @@ if __name__ == '__main__':
 """
 
 class_example = """
-class A: pass
+class A(object): pass
 
 def f(x):
     return x
