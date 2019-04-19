@@ -30,16 +30,14 @@ if __name__ == '__main__':
 """
 
 class_example = """
-class A:
-   # This is a method because when I tried this test with a function
-   # the runtime stuff didn't get it???
-   def g(self, x):
-       return x
+class A: pass
+
+def f(x):
+    return x
 
 def main():
-    print(A())
-    print(A())
-    A().g(A())
+    f(A())
+    f(A())
 """
 
 
@@ -136,5 +134,5 @@ class IntegrationTest(unittest.TestCase):
         lines = output.splitlines()
         print(b'\n'.join(lines).decode())
         assert b'+    # type: () -> None' in lines
-        assert b'+       # type: (A) -> A' in lines
+        assert b'+    # type: (A) -> A' in lines
         assert not any(line.startswith(b'+') and b'import' in line for line in lines)
