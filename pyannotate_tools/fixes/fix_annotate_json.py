@@ -164,16 +164,7 @@ class FixAnnotateJson(FixAnnotate):
         self.needed_imports = None
 
     def current_module(self):
-        # TODO: cache this?
-        filename = self.filename
-        if filename.endswith('.py'):
-            filename = filename[:-3]
-        parts = filename.split(os.sep)
-        if parts[-1] == '__init__':
-            del parts[-1]
-        if parts[0] == '.':
-            del parts[0]
-        return '.'.join(parts)
+        return self._current_module
 
     def make_annotation(self, node, results):
         name = results['name']
@@ -190,7 +181,7 @@ class FixAnnotateJson(FixAnnotate):
     @classmethod
     def init_stub_json_from_data(cls, data, filename):
         cls.stub_json = data
-        cls.top_dir, _ = crawl_up(os.path.abspath(filename))
+        cls.top_dir, cls._current_module = crawl_up(os.path.abspath(filename))
 
     def init_stub_json(self):
         with open(self.__class__.stub_json_file) as f:

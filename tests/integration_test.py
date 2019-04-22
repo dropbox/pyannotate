@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import shutil
 
 
 example = """
@@ -28,6 +29,17 @@ if __name__ == '__main__':
     collect_types.dump_stats('type_info.json')
 """
 
+class_example = """
+class A(object): pass
+
+def f(x):
+    return x
+
+def main():
+    f(A())
+    f(A())
+"""
+
 
 class IntegrationTest(unittest.TestCase):
 
@@ -39,6 +51,7 @@ class IntegrationTest(unittest.TestCase):
 
     def tearDown(self):
         os.chdir(self.savedir)
+        shutil.rmtree(self.tempdir)
 
     def test_simple(self):
         with open('gcd.py', 'w') as f:
@@ -104,3 +117,22 @@ class IntegrationTest(unittest.TestCase):
         lines = output.splitlines()
         assert b'+    # type: () -> None' in lines
         assert b'+    # type: (int, int) -> int' in lines
+
+    def test_subdir_w_class(self):
+        os.makedirs('foo')
+        with open('foo/bar.py', 'w') as f:
+            f.write(class_example)
+        with open('driver.py', 'w') as f:
+            f.write('import sys\n')
+            f.write('sys.path.insert(0, "foo")\n')
+            f.write('from bar import main\n')
+            f.write(driver)
+        subprocess.check_call([sys.executable, 'driver.py'])
+        output = subprocess.check_output([sys.executable, '-m', 'pyannotate_tools.annotations',
+                                          # Construct platform-correct pathname:
+                                          os.path.join('foo', 'bar.py')])
+        lines = output.splitlines()
+        print(b'\n'.join(lines).decode())
+        assert b'+    # type: () -> None' in lines
+        assert b'+    # type: (A) -> A' in lines
+        assert not any(line.startswith(b'+') and b'import' in line for line in lines)
