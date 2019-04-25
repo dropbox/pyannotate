@@ -9,6 +9,7 @@ import contextlib
 import json
 import os
 import sched
+import sys
 import time
 import unittest
 from collections import namedtuple
@@ -51,6 +52,9 @@ def noop_dec(a):
     # type: (Any) -> Any
     return a
 
+def discard(a):
+    # type: (Any) -> None
+    pass
 
 @noop_dec
 class FoosParent(object):
@@ -58,7 +62,8 @@ class FoosParent(object):
 
 
 class FooObject(FoosParent):
-    pass
+    class FooNested(object):
+        pass
 
 
 class FooReturn(FoosParent):
@@ -314,6 +319,8 @@ class TestCollectTypes(TestBaseClass):
 
             OldStyleClass().foo(10)
 
+            discard(FooObject.FooNested())
+
         # TODO(svorobev): add checks for the rest of the functions
         # print_int,
         self.assert_type_comments(
@@ -323,6 +330,12 @@ class TestCollectTypes(TestBaseClass):
             'do_work_clsmthd',
             ['(int, pyannotate_runtime.tests.test_collect_types.FooNamedTuple) -> EOFError'])
         self.assert_type_comments('OldStyleClass.foo', ['(int) -> int'])
+
+        # Need __qualname__ to get this right
+        if sys.version_info >= (3, 3):
+            self.assert_type_comments(
+                'discard',
+                ['(pyannotate_runtime.tests.test_collect_types.FooObject.FooNested) -> None'])
 
         # TODO: that could be better
         self.assert_type_comments('takes_different_lists', ['(List[Union[int, str]]) -> None'])

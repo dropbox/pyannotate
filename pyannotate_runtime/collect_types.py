@@ -54,7 +54,7 @@ from typing import (
 )
 from contextlib import contextmanager
 
-MYPY=False  
+MYPY=False
 if MYPY:
     # MYPY is True when mypy is running
     # 'Type' is only required for running mypy, not for running pyannotate
@@ -430,7 +430,8 @@ def name_from_type(type_):
                 # Also ignore '<uknown>' modules so pyannotate can parse these types
                 return type_.__name__
             else:
-                return '%s.%s' % (module, type_.__name__)
+                name = getattr(type_, '__qualname__', None) or type_.__name__
+                return '%s.%s' % (module, name)
         else:
             return 'None'
 

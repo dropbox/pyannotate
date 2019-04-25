@@ -268,6 +268,18 @@ class FixAnnotateJson(FixAnnotate):
         # `List[SomeClass]` and remember to import it.
         return re.sub(r'[\w.]+', self.type_updater, type_str)
 
+    def split_name(self, name):
+        # This is a very heuristic hack for handling nested classes,
+        # since we don't actually know the module structure: assume
+        # that any element of the path that starts with a capital
+        # letter is actually a class name and not a module, and split
+        # the qualified name based on that.
+        parts = name.split('.')
+        for i in range(len(parts) - 2, -1, -1):
+            if not parts[i][0].isupper():
+                break
+        return '.'.join(parts[:i+1]), '.'.join(parts[i+1:]), parts[i+1]
+
     def type_updater(self, match):
         # Replace `pkg.mod.SomeClass` with `SomeClass`
         # and remember to import it.
@@ -279,6 +291,6 @@ class FixAnnotateJson(FixAnnotate):
             if word in typing_all:
                 self.add_import('typing', word)
             return word
-        mod, name = word.rsplit('.', 1)
-        self.add_import(mod, name)
+        mod, name, to_import = self.split_name(word)
+        self.add_import(mod, to_import)
         return name
