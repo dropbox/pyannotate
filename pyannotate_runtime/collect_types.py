@@ -431,7 +431,7 @@ def name_from_type(type_):
                 return type_.__name__
             else:
                 name = getattr(type_, '__qualname__', None) or type_.__name__
-                return '%s.%s' % (module, name)
+                return '%s:%s' % (module, name)
         else:
             return 'None'
 
