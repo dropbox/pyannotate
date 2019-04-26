@@ -188,7 +188,7 @@ def tokenize(s):
             tokens.append(Separator('->'))
             s = s[2:]
         else:
-            m = re.match(r'[-\w]+( *(\.|:) *[-/\w]*)*', s)
+            m = re.match(r'[-\w]+(\s*(\.|:)\s*[-/\w]*)*', s)
             if not m:
                 raise ParseError(original)
             fullname = m.group(0)
