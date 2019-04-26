@@ -431,7 +431,8 @@ def name_from_type(type_):
                 return type_.__name__
             else:
                 name = getattr(type_, '__qualname__', None) or type_.__name__
-                return '%s:%s' % (module, name)
+                delim = '.' if '.' not in name else ':'
+                return '%s%s%s' % (module, delim, name)
         else:
             return 'None'
 

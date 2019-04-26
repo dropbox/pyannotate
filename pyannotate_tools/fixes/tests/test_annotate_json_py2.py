@@ -667,7 +667,7 @@ class TestFixAnnotateJson(FixerTestCase):
               "path": "<string>",
               "line": 1,
               "signature": {
-                  "arg_types": ["foo.A.B"],
+                  "arg_types": ["foo:A.B"],
                   "return_type": "None"},
               }])
         a = """\

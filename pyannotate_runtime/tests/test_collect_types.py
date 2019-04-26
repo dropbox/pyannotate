@@ -335,7 +335,7 @@ class TestCollectTypes(TestBaseClass):
         if sys.version_info >= (3, 3):
             self.assert_type_comments(
                 'discard',
-                ['(pyannotate_runtime.tests.test_collect_types.FooObject.FooNested) -> None'])
+                ['(pyannotate_runtime.tests.test_collect_types:FooObject.FooNested) -> None'])
 
         # TODO: that could be better
         self.assert_type_comments('takes_different_lists', ['(List[Union[int, str]]) -> None'])
