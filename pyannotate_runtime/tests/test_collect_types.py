@@ -325,17 +325,17 @@ class TestCollectTypes(TestBaseClass):
         # print_int,
         self.assert_type_comments(
             'WorkerClass.__init__',
-            ['(int, pyannotate_runtime.tests.test_collect_types:FooObject) -> None'])
+            ['(int, pyannotate_runtime.tests.test_collect_types.FooObject) -> None'])
         self.assert_type_comments(
             'do_work_clsmthd',
-            ['(int, pyannotate_runtime.tests.test_collect_types:FooNamedTuple) -> EOFError'])
+            ['(int, pyannotate_runtime.tests.test_collect_types.FooNamedTuple) -> EOFError'])
         self.assert_type_comments('OldStyleClass.foo', ['(int) -> int'])
 
         # Need __qualname__ to get this right
         if sys.version_info >= (3, 3):
             self.assert_type_comments(
                 'discard',
-                ['(pyannotate_runtime.tests.test_collect_types:FooObject.FooNested) -> None'])
+                ['(pyannotate_runtime.tests.test_collect_types.FooObject.FooNested) -> None'])
 
         # TODO: that could be better
         self.assert_type_comments('takes_different_lists', ['(List[Union[int, str]]) -> None'])
@@ -450,9 +450,9 @@ class TestCollectTypes(TestBaseClass):
                 func_sometimes_fail(0)
             except Exception:
                 pass
-        self.assert_type_comments('func_always_fail', ['(int) -> pyannotate_runtime.collect_types:NoReturnType',
-                                                       '(str) -> pyannotate_runtime.collect_types:NoReturnType'])
-        self.assert_type_comments('func_sometimes_fail', ['(int) -> pyannotate_runtime.collect_types:NoReturnType',
+        self.assert_type_comments('func_always_fail', ['(int) -> pyannotate_runtime.collect_types.NoReturnType',
+                                                       '(str) -> pyannotate_runtime.collect_types.NoReturnType'])
+        self.assert_type_comments('func_sometimes_fail', ['(int) -> pyannotate_runtime.collect_types.NoReturnType',
                                                           '(str) -> str'])
 
     def test_only_return(self):
@@ -523,8 +523,8 @@ class TestCollectTypes(TestBaseClass):
             identity_qualified(collect_types.TentativeType())
         self.assert_type_comments(
             'identity_qualified',
-            ['(pyannotate_runtime.collect_types:TentativeType) -> '
-             'pyannotate_runtime.collect_types:TentativeType'])
+            ['(pyannotate_runtime.collect_types.TentativeType) -> '
+             'pyannotate_runtime.collect_types.TentativeType'])
 
     def test_recursive_function(self):
         # type: () -> None
@@ -542,9 +542,9 @@ class TestCollectTypes(TestBaseClass):
         self.assert_type_comments(
             'recurse',
             ['(Tuple[]) -> float',
-             '(Tuple[bool]) -> pyannotate_runtime.collect_types:UnknownType',
-             '(Tuple[str, bool]) -> pyannotate_runtime.collect_types:UnknownType',
-             '(Tuple[int, str, bool]) -> pyannotate_runtime.collect_types:UnknownType'])
+             '(Tuple[bool]) -> pyannotate_runtime.collect_types.UnknownType',
+             '(Tuple[str, bool]) -> pyannotate_runtime.collect_types.UnknownType',
+             '(Tuple[int, str, bool]) -> pyannotate_runtime.collect_types.UnknownType'])
 
     def test_recursive_function_2(self):
         # type: () -> None
@@ -566,7 +566,7 @@ class TestCollectTypes(TestBaseClass):
             'recurse',
             ['(str) -> str',
              '(float) -> float',
-             '(int) -> pyannotate_runtime.collect_types:UnknownType'])
+             '(int) -> pyannotate_runtime.collect_types.UnknownType'])
 
     def test_ignoring_c_calls(self):
         # type: () -> None

@@ -92,7 +92,7 @@ class TestFixAnnotateJson(FixerTestCase):
               "line": 1,
               # Check with and without 'typing.' prefix
               "signature": {
-                  "arg_types": ["List[typing:AnyStr]", "Callable[[], int]"],
+                  "arg_types": ["List[typing.AnyStr]", "Callable[[], int]"],
                   "return_type": "object"},
               }])
         a = """\
@@ -115,8 +115,8 @@ class TestFixAnnotateJson(FixerTestCase):
               "path": "mod1.py",
               "line": 1,
               "signature": {
-                  "arg_types": ["mod1:MyClass", "mod2:OtherClass"],
-                  "return_type": "mod3:AnotherClass"},
+                  "arg_types": ["mod1.MyClass", "mod2.OtherClass"],
+                  "return_type": "mod3.AnotherClass"},
               }])
         a = """\
             def nop(foo, bar):
@@ -667,7 +667,7 @@ class TestFixAnnotateJson(FixerTestCase):
               "path": "<string>",
               "line": 1,
               "signature": {
-                  "arg_types": ["foo:A.B"],
+                  "arg_types": ["foo.A.B"],
                   "return_type": "None"},
               }])
         a = """\
