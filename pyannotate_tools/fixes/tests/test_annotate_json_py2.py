@@ -660,3 +660,24 @@ class TestFixAnnotateJson(FixerTestCase):
                 return 0
             """
         self.check(a, b)
+
+    def test_nested(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 1,
+              "signature": {
+                  "arg_types": ["foo:A.B"],
+                  "return_type": "None"},
+              }])
+        a = """\
+            def nop(a):
+                pass
+            """
+        b = """\
+            from foo import A
+            def nop(a):
+                # type: (A.B) -> None
+                pass
+            """
+        self.check(a, b)

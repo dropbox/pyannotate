@@ -266,7 +266,7 @@ class FixAnnotateJson(FixAnnotate):
     def update_type_names(self, type_str):
         # Replace e.g. `List[pkg.mod.SomeClass]` with
         # `List[SomeClass]` and remember to import it.
-        return re.sub(r'[\w.]+', self.type_updater, type_str)
+        return re.sub(r'[\w.:]+', self.type_updater, type_str)
 
     def type_updater(self, match):
         # Replace `pkg.mod.SomeClass` with `SomeClass`
@@ -274,11 +274,19 @@ class FixAnnotateJson(FixAnnotate):
         word = match.group()
         if word == '...':
             return word
-        if '.' not in word:
+        if '.' not in word and ':' not in word:
             # Assume it's either builtin or from `typing`
             if word in typing_all:
                 self.add_import('typing', word)
             return word
-        mod, name = word.rsplit('.', 1)
-        self.add_import(mod, name)
+        # If there is a :, treat that as the separator between the
+        # module and the class.  Otherwise assume everything but the
+        # last element is the module.
+        if ':' in word:
+            mod, name = word.split(':')
+            to_import = name.split('.', 1)[0]
+        else:
+            mod, name = word.rsplit('.', 1)
+            to_import = name
+        self.add_import(mod, to_import)
         return name
