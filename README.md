@@ -63,8 +63,9 @@ Notes and tips
 - It's best to do one file at a time, at least until you're
   comfortable with the tool.
 - The tool doesn't touch functions that already have an annotation.
-- The tool currently always generates type comments, i.e. Python 2
-  style annotations.  (Python 3 style are a TO DO item.)
+- The tool can generate either of:
+  - type comments, i.e. Python 2 style annotations
+  - inline type annotations, i.e. Python 3 style annotations, using `--py3` in v1.0.7+
 
 Red tape
 ========
