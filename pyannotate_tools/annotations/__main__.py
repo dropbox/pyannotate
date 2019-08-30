@@ -16,6 +16,8 @@ from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
 parser = argparse.ArgumentParser()
 parser.add_argument('--type-info', default='type_info.json', metavar="FILE",
                     help="JSON input file (default type_info.json)")
+parser.add_argument('--uses-signature', action='store_true',
+                    help="JSON input uses a signature format")
 parser.add_argument('-p', '--print-function', action='store_true',
                     help="Assume print is a function")
 parser.add_argument('-w', '--write', action='store_true',
@@ -108,14 +110,18 @@ def main(args_override=None):
     else:
         # Produce nice error message if type_info.json not found.
         try:
-            open(args.type_info).close()
+            with open(args.type_info) as f:
+                contents = f.read()
         except IOError as err:
             sys.exit("Can't open type info file: %s" % err)
 
         # Run pass 2 with output into a variable.
-        data = generate_annotations_json_string(
-            args.type_info,
-            only_simple=args.only_simple)  # type: List[Any]
+        if args.uses_signature:
+            data = json.loads(contents)
+        else:
+            data = generate_annotations_json_string(
+                args.type_info,
+                only_simple=args.only_simple)  # type: List[Any]
 
         # Run pass 3 with input from that variable.
         FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
