@@ -117,11 +117,11 @@ def main(args_override=None):
 
         # Run pass 2 with output into a variable.
         if args.uses_signature:
-            data = json.loads(contents)
+            data = json.loads(contents)  # type: List[Any]
         else:
             data = generate_annotations_json_string(
                 args.type_info,
-                only_simple=args.only_simple)  # type: List[Any]
+                only_simple=args.only_simple)
 
         # Run pass 3 with input from that variable.
         FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
