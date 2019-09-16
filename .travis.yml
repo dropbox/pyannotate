@@ -5,6 +5,7 @@ matrix:
         - python: '2.7'
         - python: '3.4'
         - python: '3.5.1'     # Special, it doesn't have typing.Text
+          dist: trusty        # needed because xenial doesn't have 3.5.1
         - python: '3.5'       # Latest, e.g. 3.5.4
         - python: '3.6'
           env: USE_MYPY=true
