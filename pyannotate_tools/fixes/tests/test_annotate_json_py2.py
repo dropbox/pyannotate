@@ -410,6 +410,27 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.warns(a, a, "signature from line 10 too far away -- skipping", unchanged=True)
 
+    def test_line_number_drift_allowed(self):
+        self.setTestData(
+            [{"func_name": "yep",
+              "path": "<string>",
+              "line": 10,
+              "signature": {
+                  "arg_types": ["int"],
+                  "return_type": "int"},
+              }])
+        a = """\
+            def yep(a):
+                return a
+            """
+        b = """\
+            def yep(a):
+                # type: (int) -> int
+                return a
+            """
+        with FixAnnotateJson.max_line_drift_set(10):
+            self.check(a, b)
+
     def test_classmethod(self):
         # Class method names currently are returned without class name
         self.setTestData(

@@ -24,6 +24,9 @@ parser.add_argument('-w', '--write', action='store_true',
                     help="Write output files")
 parser.add_argument('-j', '--processes', type=int, default=1, metavar="N",
                     help="Use N parallel processes (default no parallelism)")
+parser.add_argument('--max-line-drift', type=int, default=5, metavar="N",
+                    help="Maximum allowed line drift when inserting annotation"
+                         " (can be useful for custom codecs)")
 parser.add_argument('-v', '--verbose', action='store_true',
                     help="More verbose output")
 parser.add_argument('-q', '--quiet', action='store_true',
@@ -136,7 +139,8 @@ def main(args_override=None):
         nobackups=True,
         show_diffs=not args.quiet)
     if not rt.errors:
-        rt.refactor(args.files, write=args.write, num_processes=args.processes)
+        with FixAnnotateJson.max_line_drift_set(args.max_line_drift):
+            rt.refactor(args.files, write=args.write, num_processes=args.processes)
         if args.processes == 1:
             rt.summarize()
         else:
