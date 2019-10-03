@@ -24,6 +24,9 @@ parser.add_argument('-w', '--write', action='store_true',
                     help="Write output files")
 parser.add_argument('-j', '--processes', type=int, default=1, metavar="N",
                     help="Use N parallel processes (default no parallelism)")
+parser.add_argument('--max-line-drift', type=int, default=5, metavar="N",
+                    help="Maximum allowed line drift when inserting annotation"
+                         " (can be useful for custom codecs)")
 parser.add_argument('-v', '--verbose', action='store_true',
                     help="More verbose output")
 parser.add_argument('-q', '--quiet', action='store_true',
@@ -124,6 +127,7 @@ def main(args_override=None):
                 only_simple=args.only_simple)
 
         # Run pass 3 with input from that variable.
+        FixAnnotateJson.set_line_drift(args.max_line_drift)
         FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
 

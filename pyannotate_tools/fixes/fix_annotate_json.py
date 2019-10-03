@@ -179,6 +179,10 @@ class FixAnnotateJson(FixAnnotate):
     stub_json = None  # type: List[Dict[str, Any]]
 
     @classmethod
+    def set_line_drift(cls, line_drift):
+        cls.line_drift = line_drift
+
+    @classmethod
     def init_stub_json_from_data(cls, data, filename):
         cls.stub_json = data
         cls.top_dir, cls._current_module = crawl_up(os.path.abspath(filename))
@@ -214,7 +218,7 @@ class FixAnnotateJson(FixAnnotate):
             # If the line number is too far off, the source probably drifted
             # since the trace was collected; it's better to skip this node.
             # (Allow some drift, since decorators also cause an offset.)
-            if abs(node.get_lineno() - it['line']) >= 5:
+            if abs(node.get_lineno() - it['line']) >= self.line_drift:
                 self.log_message("%s:%d: '%s' signature from line %d too far away -- skipping" %
                                  (self.filename, node.get_lineno(), it['func_name'], it['line']))
                 return None
