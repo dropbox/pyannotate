@@ -21,6 +21,7 @@ from __future__ import print_function
 import json  # noqa
 import os
 import re
+from contextlib import contextmanager
 
 from lib2to3.fixer_util import syms, touch_import
 from lib2to3.pgen2 import token
@@ -149,6 +150,7 @@ def count_args(node, results):
 class FixAnnotateJson(FixAnnotate):
 
     needed_imports = None
+    line_drift = 5
 
     def add_import(self, mod, name):
         if mod == self.current_module():
@@ -179,8 +181,14 @@ class FixAnnotateJson(FixAnnotate):
     stub_json = None  # type: List[Dict[str, Any]]
 
     @classmethod
-    def set_line_drift(cls, line_drift):
-        cls.line_drift = line_drift
+    @contextmanager
+    def max_line_drift_set(cls, max_drift):
+        old_drift = cls.line_drift
+        cls.line_drift = max_drift
+        try:
+            yield
+        finally:
+            cls.line_drift = old_drift
 
     @classmethod
     def init_stub_json_from_data(cls, data, filename):

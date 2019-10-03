@@ -127,8 +127,8 @@ def main(args_override=None):
                 only_simple=args.only_simple)
 
         # Run pass 3 with input from that variable.
-        FixAnnotateJson.set_line_drift(args.max_line_drift)
-        FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
+        with FixAnnotateJson.max_line_drift_set(args.max_line_drift):
+            FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
 
     flags = {'print_function': args.print_function,
