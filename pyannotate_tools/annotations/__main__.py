@@ -127,8 +127,7 @@ def main(args_override=None):
                 only_simple=args.only_simple)
 
         # Run pass 3 with input from that variable.
-        with FixAnnotateJson.max_line_drift_set(args.max_line_drift):
-            FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
+        FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
 
     flags = {'print_function': args.print_function,
@@ -140,7 +139,8 @@ def main(args_override=None):
         nobackups=True,
         show_diffs=not args.quiet)
     if not rt.errors:
-        rt.refactor(args.files, write=args.write, num_processes=args.processes)
+        with FixAnnotateJson.max_line_drift_set(args.max_line_drift):
+            rt.refactor(args.files, write=args.write, num_processes=args.processes)
         if args.processes == 1:
             rt.summarize()
         else:
