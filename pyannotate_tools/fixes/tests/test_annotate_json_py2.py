@@ -60,6 +60,102 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
 
+    def test_decorator_func(self):
+        self.setTestData(
+            [{"func_name": "foo",
+              "path": "<string>",
+              "line": 2,
+              "signature": {
+                  "arg_types": [],
+                  "return_type": "int"},
+              }])
+        a = """\
+            @dec
+            def foo():
+                return 42
+            """
+        b = """\
+            @dec
+            def foo():
+                # type: () -> int
+                return 42
+            """
+        self.check(a, b)
+
+    def test_decorator_method(self):
+        self.setTestData(
+            [{"func_name": "Bar.foo",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": [],
+                  "return_type": "int"},
+              }])
+        a = """\
+            class Bar:
+                @dec
+                @dec2
+                def foo(self):
+                    return 42
+            """
+        b = """\
+            class Bar:
+                @dec
+                @dec2
+                def foo(self):
+                    # type: () -> int
+                    return 42
+            """
+        self.check(a, b)
+
+    def test_nested_class_func(self):
+        self.setTestData(
+            [{"func_name": "A.B.foo",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ['str'],
+                  "return_type": "int"},
+              }])
+        a = """\
+            class A:
+                class B:
+                    def foo(x):
+                        return 42
+            """
+        b = """\
+            class A:
+                class B:
+                    def foo(x):
+                        # type: (str) -> int
+                        return 42
+            """
+        self.check(a, b)
+
+    def test_nested_func(self):
+        self.setTestData(
+            [{"func_name": "A.foo.bar",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": [],
+                  "return_type": "int"},
+              }])
+        a = """\
+            class A:
+                def foo():
+                    def bar():
+                        return 42
+            """
+        b = """\
+            class A:
+                def foo():
+                    def bar():
+                        # type: () -> int
+                        return 42
+            """
+        self.check(a, b)
+
     def test_keyword_only_argument(self):
         self.setTestData(
             [{"func_name": "nop",
@@ -432,7 +528,7 @@ class TestFixAnnotateJson(FixerTestCase):
             self.check(a, b)
 
     def test_classmethod(self):
-        # Class method names currently are returned without class name
+        # Class methods need to work without a class name
         self.setTestData(
             [{"func_name": "nop",
               "path": "<string>",
@@ -456,10 +552,60 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
 
+    def test_classmethod_named(self):
+        # Class methods also should work *with* a class name
+        self.setTestData(
+            [{"func_name": "C.nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["int"],
+                  "return_type": "int"}
+              }])
+        a = """\
+            class C:
+                @classmethod
+                def nop(cls, a):
+                    return a
+            """
+        b = """\
+            class C:
+                @classmethod
+                def nop(cls, a):
+                    # type: (int) -> int
+                    return a
+            """
+        self.check(a, b)
+
     def test_staticmethod(self):
-        # Static method names currently are returned without class name
+        # Static methods need to work without a class name
         self.setTestData(
             [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["int"],
+                  "return_type": "int"}
+              }])
+        a = """\
+            class C:
+                @staticmethod
+                def nop(a):
+                    return a
+            """
+        b = """\
+            class C:
+                @staticmethod
+                def nop(a):
+                    # type: (int) -> int
+                    return a
+            """
+        self.check(a, b)
+
+    def test_staticmethod_named(self):
+        # Static methods also should work *with* a class name
+        self.setTestData(
+            [{"func_name": "C.nop",
               "path": "<string>",
               "line": 3,
               "signature": {

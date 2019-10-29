@@ -82,22 +82,26 @@ def get_init_file(dir):
             return f
     return None
 
-def get_funcname(name, node):
-    # type: (Leaf, Node) -> Text
-    """Get function name by the following rules:
+def get_funcname(node):
+    # type: (Optional[Node]) -> Text
+    """Get function name by (approximately) the following rules:
 
     - function -> function_name
-    - instance method -> ClassName.function_name
+    - method -> ClassName.function_name
+
+    More specifically, we include every class and function name that
+    the node is a child of, so nested classes and functions get names like
+    OuterClass.InnerClass.outer_fn.inner_fn.
     """
-    funcname = name.value
-    if node.parent and node.parent.parent:
-        grand = node.parent.parent
-        if grand.type == syms.classdef:
-            grandname = grand.children[1]
-            assert grandname.type == token.NAME, repr(name)
-            assert isinstance(grandname, Leaf)  # Same as previous, for mypy
-            funcname = grandname.value + '.' + funcname
-    return funcname
+    components = []  # type: List[str]
+    while node:
+        if node.type in (syms.classdef, syms.funcdef):
+            name = node.children[1]
+            assert name.type == token.NAME, repr(name)
+            assert isinstance(name, Leaf)  # Same as previous, for mypy
+            components.append(name.value)
+        node = node.parent
+    return '.'.join(reversed(components))
 
 def count_args(node, results):
     # type: (Node, Dict[str, Base]) -> Tuple[int, bool, bool, bool]
@@ -172,8 +176,19 @@ class FixAnnotateJson(FixAnnotate):
         name = results['name']
         assert isinstance(name, Leaf), repr(name)
         assert name.type == token.NAME, repr(name)
-        funcname = get_funcname(name, node)
+        funcname = get_funcname(node)
         res = self.get_annotation_from_stub(node, results, funcname)
+
+        # If we couldn't find an annotation and this is a classmethod or
+        # staticmethod, try again with just the funcname, since the
+        # type collector can't figure out class names for those.
+        # (We try with the full name above first so that tools that *can* figure
+        # that out, like dmypy suggest, can use it.)
+        if not res:
+            decs = self.get_decorators(node)
+            if 'staticmethod' in decs or 'classmethod' in decs:
+                res = self.get_annotation_from_stub(node, results, name.value)
+
         return res
 
     stub_json_file = os.getenv('TYPE_COLLECTION_JSON')

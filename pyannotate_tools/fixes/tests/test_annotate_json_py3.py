@@ -4,6 +4,8 @@
 import json
 import os
 import tempfile
+import unittest
+import sys
 
 from lib2to3.tests.test_fixers import FixerTestCase
 
@@ -604,5 +606,29 @@ class TestFixAnnotateJson(FixerTestCase):
         b = """\
             from typing import Tuple
             def nop(a: Tuple[int, ...]) -> int:   return 0
+            """
+        self.check(a, b)
+
+    @unittest.skipIf(sys.version_info < (3, 5), 'async not supported on old python')
+    def test_nested_class_async_func(self):
+        self.setTestData(
+            [{"func_name": "A.B.foo",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ['str'],
+                  "return_type": "int"},
+              }])
+        a = """\
+            class A:
+                class B:
+                    async def foo(x):
+                        return 42
+            """
+        b = """\
+            class A:
+                class B:
+                    async def foo(x: str) -> int:
+                        return 42
             """
         self.check(a, b)
