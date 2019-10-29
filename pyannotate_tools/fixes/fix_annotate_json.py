@@ -84,10 +84,14 @@ def get_init_file(dir):
 
 def get_funcname(node):
     # type: (Optional[Node]) -> Text
-    """Get function name by the following rules:
+    """Get function name by (approximately) the following rules:
 
     - function -> function_name
-    - instance method -> ClassName.function_name
+    - method -> ClassName.function_name
+
+    More specifically, we include every class and function name that
+    the node is a child of, so nested classes and functions get names like
+    OuterClass.InnerClass.outer_fn.inner_fn.
     """
     components = []  # type: List[str]
     while node:

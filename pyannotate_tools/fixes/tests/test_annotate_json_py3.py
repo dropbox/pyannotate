@@ -606,3 +606,26 @@ class TestFixAnnotateJson(FixerTestCase):
             def nop(a: Tuple[int, ...]) -> int:   return 0
             """
         self.check(a, b)
+
+    def test_nested_class_async_func(self):
+        self.setTestData(
+            [{"func_name": "A.B.foo",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ['str'],
+                  "return_type": "int"},
+              }])
+        a = """\
+            class A:
+                class B:
+                    async def foo(x):
+                        return 42
+            """
+        b = """\
+            class A:
+                class B:
+                    async def foo(x: str) -> int:
+                        return 42
+            """
+        self.check(a, b)
