@@ -114,20 +114,20 @@ class TestFixAnnotateJson(FixerTestCase):
               "path": "<string>",
               "line": 3,
               "signature": {
-                  "arg_types": [],
+                  "arg_types": ['str'],
                   "return_type": "int"},
               }])
         a = """\
             class A:
                 class B:
-                    def foo():
+                    def foo(x):
                         return 42
             """
         b = """\
             class A:
                 class B:
-                    def foo():
-                        # type: () -> int
+                    def foo(x):
+                        # type: (str) -> int
                         return 42
             """
         self.check(a, b)
@@ -615,13 +615,13 @@ class TestFixAnnotateJson(FixerTestCase):
         a = """\
             class C:
                 @staticmethod
-                def nop(cls, a):
+                def nop(a):
                     return a
             """
         b = """\
             class C:
                 @staticmethod
-                def nop(cls, a):
+                def nop(a):
                     # type: (int) -> int
                     return a
             """
