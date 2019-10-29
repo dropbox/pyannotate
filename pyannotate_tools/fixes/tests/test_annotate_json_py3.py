@@ -4,6 +4,8 @@
 import json
 import os
 import tempfile
+import unittest
+import sys
 
 from lib2to3.tests.test_fixers import FixerTestCase
 
@@ -607,6 +609,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
 
+    @unittest.skipIf(sys.version_info < (3, 5), 'async not supported on old python')
     def test_nested_class_async_func(self):
         self.setTestData(
             [{"func_name": "A.B.foo",
