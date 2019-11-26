@@ -27,6 +27,8 @@ parser.add_argument('-j', '--processes', type=int, default=1, metavar="N",
 parser.add_argument('--max-line-drift', type=int, default=5, metavar="N",
                     help="Maximum allowed line drift when inserting annotation"
                          " (can be useful for custom codecs)")
+parser.add_argument('--replace-types', action='store_true',
+                    help="Replace existing types instead of preserving them")
 parser.add_argument('-v', '--verbose', action='store_true',
                     help="More verbose output")
 parser.add_argument('-q', '--quiet', action='store_true',
@@ -131,7 +133,8 @@ def main(args_override=None):
         fixers = ['pyannotate_tools.fixes.fix_annotate_json']
 
     flags = {'print_function': args.print_function,
-             'annotation_style': annotation_style}
+             'annotation_style': annotation_style,
+             'replace_types': args.replace_types}
     rt = ModifiedRefactoringTool(
         fixers=fixers,
         options=flags,

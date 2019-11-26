@@ -30,10 +30,11 @@ class TestFixAnnotateJson(FixerTestCase):
         os.remove(self.tf.name)
         super(TestFixAnnotateJson, self).tearDown()
 
-    def setTestData(self, data):
+    def setTestData(self, data, replace_types=False):
         json.dump(data, self.tf)
         self.tf.close()
         self.filename = data[0]["path"]
+        self.refactor.options['replace_types'] = replace_types
 
     def test_basic(self):
         self.setTestData(
@@ -59,6 +60,224 @@ class TestFixAnnotateJson(FixerTestCase):
                 return 42
             """
         self.check(a, b)
+
+    def test_replace_single_1(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["Foo", "Bar"],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Any, Any) -> Any
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Foo, Bar) -> int
+                return 42
+            """
+        self.check(a, b)
+
+    def test_replace_single_2(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["Foo", "Bar"],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Any, Any) -> Any  # argh
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Foo, Bar) -> int  # argh
+                return 42
+            """
+        self.check(a, b)
+
+    def test_replace_single_3(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["Foo", "Bar"],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Any, Any) -> Any
+                # comment
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Foo, Bar) -> int
+                # comment
+                return 42
+            """
+        self.check(a, b)
+
+    def test_replace_single_4(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["Foo", "Bar"],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Any, Any) -> Any
+                # comment
+                # comment2
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Foo, Bar) -> int
+                # comment
+                # comment2
+                return 42
+            """
+        self.check(a, b)
+
+
+    def test_replace_multi_1(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": ["Foo", "Bar"],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(
+                foo,  # type: Any
+                bar,  # type: Any  # comment
+            ):
+                # type: (...) -> Any
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(
+                foo,
+                bar,  # comment
+            ):
+                # type: (Foo, Bar) -> int
+                return 42
+            """
+        self.check(a, b)
+
+    def test_replace_multi_2(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": [
+                      "Fooooooooooooooooooooooooooooooooooooooo",
+                      "Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+                  ],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(
+                foo,  # type: Any
+                bar,  # type: Any  # comment
+            ):
+                # type: (...) -> Any
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(
+                foo,  # type: Fooooooooooooooooooooooooooooooooooooooo
+                bar,  # type: Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr  # comment
+                ):
+                # type: (...) -> int
+                return 42
+            """
+        self.check(a, b)
+
+
+    def test_replace_multi_3(self):
+        self.setTestData(
+            [{"func_name": "nop",
+              "path": "<string>",
+              "line": 3,
+              "signature": {
+                  "arg_types": [
+                      "Fooooooooooooooooooooooooooooooooooooooo",
+                      "Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+                  ],
+                  "return_type": "int"},
+              }], replace_types = True)
+        a = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo, bar):
+                # type: (Any, Any) -> Any  # comment
+                return 42
+            """
+        b = """\
+            from typing import Any
+            class Foo: pass
+            class Bar: pass
+            def nop(foo,  # type: Fooooooooooooooooooooooooooooooooooooooo
+                    bar,  # type: Barrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+                    ):
+                # type: (...) -> int  # comment
+                return 42
+            """
+        self.check(a, b)
+
 
     def test_decorator_func(self):
         self.setTestData(

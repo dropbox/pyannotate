@@ -19,12 +19,14 @@ class TestFixAnnotate(FixerTestCase):
     def test_no_arg(self):
         a = """\
             def nop():
+                # comment
                 return 42
             """
         b = """\
             from typing import Any
             def nop():
                 # type: () -> Any
+                # comment
                 return 42
             """
         self.check(a, b)
@@ -309,6 +311,7 @@ class TestFixAnnotate(FixerTestCase):
         a = """\
             def nop(arg0, arg1, arg2, arg3, arg4, arg5, arg6,
                     arg7=None, arg8=0, arg9='', arg10=False,):
+                # comment
                 return
             """
         b = """\
@@ -326,6 +329,7 @@ class TestFixAnnotate(FixerTestCase):
                     arg10=False,  # type: bool
                     ):
                 # type: (...) -> None
+                # comment
                 return
             """
         self.check(a, b)

@@ -63,19 +63,9 @@ class FixAnnotate(BaseFix):
             if FixAnnotate.counter <= 0:
                 return
 
-        # Check if there's already a long-form annotation for some argument.
-        parameters = results.get('parameters')
-        if parameters is not None:
-            for ch in parameters.pre_order():
-                if ch.prefix.lstrip().startswith('# type:'):
-                    return
-        args = results.get('args')
-        if args is not None:
-            for ch in args.pre_order():
-                if ch.prefix.lstrip().startswith('# type:'):
-                    return
-
         children = results['suite'][0].children
+        parameters = results.get('parameters')
+        args = results.get('args')
 
         # NOTE: I've reverse-engineered the structure of the parse tree.
         # It's always a list of nodes, the first of which contains the
@@ -90,11 +80,6 @@ class FixAnnotate(BaseFix):
         #
         # "Compact" functions (e.g. "def foo(x, y): return max(x, y)")
         # have a different structure (no NEWLINE, INDENT, or DEDENT).
-
-        # Check if there's already an annotation.
-        for ch in children:
-            if ch.prefix.lstrip().startswith('# type:'):
-                return  # There's already a # type: comment here; don't change anything.
 
         # Python 3 style return annotation are already skipped by the pattern
 
@@ -174,6 +159,36 @@ class FixAnnotate(BaseFix):
         if annot is None:
             return
         argtypes, restype = annot
+
+        annotated_children = []
+        # Check if there's already a long-form annotation for some argument.
+        if parameters is not None:
+            for ch in parameters.pre_order():
+                if ch.prefix.lstrip().startswith('# type:'):
+                    annotated_children.append(ch)
+        if args is not None:
+            for ch in args.pre_order():
+                if ch.prefix.lstrip().startswith('# type:'):
+                    annotated_children.append(ch)
+        # Check if there's already a function level annotation.
+        last_was_newline = False
+        for ch in children:
+            if ch.prefix.lstrip().startswith('# type:'):
+                annotated_children.append(ch)
+            elif ch.prefix.lstrip().startswith('#') and last_was_newline:
+                ch.prefix = "\n" + ch.prefix
+            last_was_newline = ch.type == token.NEWLINE
+
+        # If we are configured to replace existing types, remove any
+        # type comment in an annotated child. Otherwise if there are
+        # annotations return.
+        # TODO: Handle replacing types in python 3.
+        if self.options.get('replace_types'):
+            for ch in annotated_children:
+                ch.prefix = remove_type_comment_from_prefix(ch.prefix)
+        else:
+            if annotated_children:
+                return
 
         if self.options['annotation_style'] == 'py3':
             self.add_py3_annot(argtypes, restype, node, results)
@@ -277,8 +292,14 @@ class FixAnnotate(BaseFix):
                 annot_str = degen_str
             else:
                 annot_str = short_str
-            children[1].prefix = '%s# type: %s\n%s' % (children[1].value, annot_str,
-                                                       children[1].prefix)
+
+            old_prefix = children[1].prefix.rstrip()
+            if old_prefix:
+                assert old_prefix.lstrip().startswith('#')
+                old_prefix = old_prefix
+
+            children[1].prefix = '%s# type: %s%s\n' % (children[1].value, annot_str,
+                                                       old_prefix)
             children[1].changed()
         else:
             self.log_message("%s:%d: cannot insert annotation for one-line function" %
@@ -308,10 +329,10 @@ class FixAnnotate(BaseFix):
                 prefix = child.prefix.rstrip()
             else:
                 prefix = '  # type: ' + arg
-                old_prefix = child.prefix.strip()
+                old_prefix = child.prefix.rstrip()
                 if old_prefix:
-                    assert old_prefix.startswith('#')
-                    prefix += '  ' + old_prefix
+                    assert old_prefix.strip().startswith('#')
+                    prefix += old_prefix
             child.prefix = prefix + '\n' + indent
 
         check_self = self.is_method(node)
@@ -479,3 +500,19 @@ class FixAnnotate(BaseFix):
                 if self.is_generator(child):
                     return True
         return False
+
+
+def only_rspace(s):
+    """The opposite of rstrip. Returns *only* the trailing whitespace."""
+    return s[len(s.rstrip()):]
+
+
+def remove_type_comment_from_prefix(prefix):
+    """Remove a type comment from a node prefix, preserving trailing whitespace/comments"""
+    parts = prefix.split("#", 2)
+    if len(parts) == 3:
+        # Hang on to any whitespace preceding a trailing comment
+        trailing_space = only_rspace(parts[1])
+        return trailing_space + "#" + parts[2]
+    else:
+        return only_rspace(prefix)
