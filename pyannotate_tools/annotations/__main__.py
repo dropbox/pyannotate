@@ -39,7 +39,7 @@ parser.add_argument('files', nargs='*', metavar="FILE",
                     help="Files and directories to update with annotations")
 parser.add_argument('-s', '--only-simple', action='store_true',
                     help="Only annotate functions with trivial types")
-parser.add_argument('--python-version', action='store', default='2',
+parser.add_argument('--python-version', action='store', default='2', choices=['2', '3'],
                     help="Choose annotation style, 2 for Python 2 with comments (the "
                          "default), 3 for Python 3 with annotation syntax" )
 parser.add_argument('--py2', '-2', action='store_const', dest='python_version', const='2',
