@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 import sys
+from mock import patch
 
 from lib2to3.tests.test_fixers import FixerTestCase
 
@@ -632,3 +633,13 @@ class TestFixAnnotateJson(FixerTestCase):
                         return 42
             """
         self.check(a, b)
+
+    @patch('pyannotate_tools.fixes.fix_annotate_json.FixAnnotateJson.set_filename')
+    def test_set_filename(self, mocked_set_filename):
+        self.filename = "/path/to/fileA.py"
+        self.unchanged("")
+        mocked_set_filename.assert_called_with("/path/to/fileA.py")
+
+        self.filename = "/path/to/fileB.py"
+        self.unchanged("")
+        mocked_set_filename.assert_called_with("/path/to/fileB.py")
