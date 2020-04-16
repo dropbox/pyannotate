@@ -169,6 +169,10 @@ class FixAnnotateJson(FixAnnotate):
                 touch_import(mod, name, node)
         self.needed_imports = None
 
+    def set_filename(self, filename):
+        super(FixAnnotateJson, self).set_filename(filename)
+        self._current_module = crawl_up(filename)[1]
+
     def current_module(self):
         return self._current_module
 
@@ -208,7 +212,7 @@ class FixAnnotateJson(FixAnnotate):
     @classmethod
     def init_stub_json_from_data(cls, data, filename):
         cls.stub_json = data
-        cls.top_dir, cls._current_module = crawl_up(os.path.abspath(filename))
+        cls.top_dir = crawl_up(os.path.abspath(filename))[0]
 
     def init_stub_json(self):
         with open(self.__class__.stub_json_file) as f:
