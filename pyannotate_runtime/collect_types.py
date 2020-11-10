@@ -427,7 +427,7 @@ def name_from_type(type_):
             if module in BUILTIN_MODULES or module == '<unknown>':
                 # Omit module prefix for known built-ins, for convenience. This
                 # makes unit tests for this module simpler.
-                # Also ignore '<uknown>' modules so pyannotate can parse these types
+                # Also ignore '<unknown>' modules so pyannotate can parse these types
                 return type_.__name__
             else:
                 name = getattr(type_, '__qualname__', None) or type_.__name__
