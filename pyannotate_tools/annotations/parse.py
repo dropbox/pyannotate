@@ -97,7 +97,7 @@ def parse_json(path):
     # type: (str) -> List[FunctionInfo]
     """Deserialize a JSON file containing runtime collected types.
 
-    The input JSON is expected to to have a list of RawEntry items.
+    The input JSON is expected to have a list of RawEntry items.
     """
     with open(path) as f:
         data = json.load(f)  # type: List[RawEntry]
