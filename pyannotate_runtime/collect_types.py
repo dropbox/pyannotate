@@ -759,7 +759,7 @@ def pause():
 def stop():
     # type: () -> None
     """
-    Start collecting type information.
+    Stop collecting type information.
     """
     global running  # pylint: disable=global-statement
     running = False
@@ -777,7 +777,7 @@ def resume():
 def start():
     # type: () -> None
     """
-    Stop collecting type information.
+    Start collecting type information.
     """
     global running  # pylint: disable=global-statement
     running = True
