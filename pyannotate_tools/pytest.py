@@ -1,7 +1,19 @@
-# Configuration for pytest to automatically collect types.
-# Thanks to Guilherme Salgado.
-
 import pytest
+
+
+def pytest_addoption(parser):
+    group = parser.getgroup("pyannotate")
+    group.addoption(
+        "--type-info",
+        default="type_info.json",
+        help="File to write type information to (default: %(default)s).")
+
+
+def pytest_configure(config):
+    if config.pluginmanager.hasplugin('xdist'):
+        if config.getoption('dist') != 'no':
+            print('Disabling xdist for pyannotate collection.')
+            config.option.dist = 'no'
 
 
 def pytest_collection_finish(session):
@@ -25,4 +37,4 @@ def collect_types_fixture():
 
 def pytest_sessionfinish(session, exitstatus):
     from pyannotate_runtime import collect_types
-    collect_types.dump_stats("type_info.json")
+    collect_types.dump_stats(session.config.option.type_info)

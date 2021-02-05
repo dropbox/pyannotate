@@ -69,9 +69,14 @@ gcd.py
 Alternative, using pytest
 -------------------------
 
-For pytest users, the example_conftest.py file shows how to
-automatically configures pytest to collect types when running tests.
-The test_gcd.py file contains a simple test to demonstrate this.  Copy
-the contents of example_conftest.py to your conftest.py file and run
-pytest; it will then generate a type_info.json file like the one
-above.
+For pytest users, pytest can collect types when running tests. The test_gcd.py
+file contains a simple test to demonstrate this. You can run the pyannotate
+pytest plugin with the argument `-p pyannotate_tools.pytest` or by adding the
+plugin to your `conftest.py` (See [installing and using plugins](https://docs.pytest.org/en/latest/plugins.html#installing-and-using-plugins) for more information about pytest plugins).
+
+For a full example (it will generate output.json like the one above):
+
+```
+# omit --type-info to use the default of type_info.json
+pytest -p pyannotate_tools.pytest --type-info output.json test_gcd.py
+```
