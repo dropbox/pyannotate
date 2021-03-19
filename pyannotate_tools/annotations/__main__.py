@@ -12,10 +12,13 @@ from typing import Any, Dict, List, Optional
 
 from pyannotate_tools.annotations.main import generate_annotations_json_string, unify_type_comments
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
+from pyannotate_tools.fixes.fix_annotate_command import FixAnnotateCommand
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--type-info', default='type_info.json', metavar="FILE",
                     help="JSON input file (default type_info.json)")
+parser.add_argument('--command', '-c', metavar="COMMAND",
+                    help="Command to call to generate JSON info for a call site")
 parser.add_argument('--uses-signature', action='store_true',
                     help="JSON input uses a signature format")
 parser.add_argument('-p', '--print-function', action='store_true',
@@ -111,24 +114,30 @@ def main(args_override=None):
     if args.auto_any:
         fixers = ['pyannotate_tools.fixes.fix_annotate']
     else:
-        # Produce nice error message if type_info.json not found.
-        try:
-            with open(args.type_info) as f:
-                contents = f.read()
-        except IOError as err:
-            sys.exit("Can't open type info file: %s" % err)
+        fixers = []
+        if args.type_info:
+            # Produce nice error message if type_info.json not found.
+            try:
+                with open(args.type_info) as f:
+                    contents = f.read()
+            except IOError as err:
+                sys.exit("Can't open type info file: %s" % err)
 
-        # Run pass 2 with output into a variable.
-        if args.uses_signature:
-            data = json.loads(contents)  # type: List[Any]
-        else:
-            data = generate_annotations_json_string(
-                args.type_info,
-                only_simple=args.only_simple)
+            # Run pass 2 with output into a variable.
+            if args.uses_signature:
+                data = json.loads(contents)  # type: List[Any]
+            else:
+                data = generate_annotations_json_string(
+                    args.type_info,
+                    only_simple=args.only_simple)
 
-        # Run pass 3 with input from that variable.
-        FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
-        fixers = ['pyannotate_tools.fixes.fix_annotate_json']
+            # Run pass 3 with input from that variable.
+            FixAnnotateJson.init_stub_json_from_data(data, args.files[0])
+            fixers.append('pyannotate_tools.fixes.fix_annotate_json')
+
+        if args.command:
+            fixers.append('pyannotate_tools.fixes.fix_annotate_command')
+            FixAnnotateCommand.set_command(args.command)
 
     flags = {'print_function': args.print_function,
              'annotation_style': annotation_style}
