@@ -28,8 +28,10 @@ and the observed types will be written (in JSON form) to the filename
 you pass to `dump_stats()`.  You can have multiple start/stop pairs
 per dump call.
 
-If you'd like to automatically collect types when you run `pytest`,
-see `example/example_conftest.py` and `example/README.md`.
+If you'd like to automatically collect types when you run `pytest` you can
+run pyannotate as a `pytest` plugin with `pytest -p pyannotate_tools.pytest`
+which will output `type_info.json` which you can read more about in
+`example/README.md`.
 
 Instead of using `start()` and `stop()` you can also use a context
 manager:
