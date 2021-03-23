@@ -703,11 +703,6 @@ _consumer_thread.start()
 
 running = False
 
-TOP_DIR = os.path.join(os.getcwd(), '')     # current dir with trailing slash
-TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
-TOP_DIR_LEN = len(TOP_DIR)
-
-
 def _make_sampling_sequence(n):
     # type: (int) -> List[int]
     """
@@ -784,8 +779,8 @@ def start():
     sampling_counters.clear()
 
 
-def default_filter_filename(filename):
-    # type: (Optional[str]) -> Optional[str]
+def _default_filter_filename(top_dir, filename):
+    # type: (str, Optional[str]) -> Optional[str]
     """Default filter for filenames.
 
     Returns either a normalized filename or None.
@@ -793,19 +788,28 @@ def default_filter_filename(filename):
     """
     if filename is None:
         return None
-    elif filename.startswith(TOP_DIR):
-        if filename.startswith(TOP_DIR_DOT):
+    elif filename.startswith(top_dir):
+        top_dir_dot = os.path.join(top_dir, '.')
+        if filename.startswith(top_dir_dot):
             # Skip subdirectories starting with dot (e.g. .vagrant).
             return None
         else:
             # Strip current directory and following slashes.
-            return filename[TOP_DIR_LEN:].lstrip(os.sep)
+            return filename[len(top_dir):].lstrip(os.sep)
     elif filename.startswith(os.sep):
         # Skip absolute paths not under current directory.
         return None
     else:
         return filename
 
+
+def configure_default_filter_top_dir(directory):
+    from functools import partial
+    return partial(_default_filter_filename, directory)
+
+
+default_filter_filename = configure_default_filter_top_dir(
+        os.path.join(os.getcwd()))
 
 _filter_filename = default_filter_filename  # type: Callable[[Optional[str]], Optional[str]]
 
