@@ -19,6 +19,7 @@ matrix:
           env: USE_MYPY=true
     allow_failures:
         - python: 3.8-dev
+        - python: 3.5.1
   
 install:
     - pip install -r requirements.txt
