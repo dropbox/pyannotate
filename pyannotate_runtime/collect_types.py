@@ -703,11 +703,6 @@ _consumer_thread.start()
 
 running = False
 
-TOP_DIR = os.path.join(os.getcwd(), '')     # current dir with trailing slash
-TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
-TOP_DIR_LEN = len(TOP_DIR)
-
-
 def _make_sampling_sequence(n):
     # type: (int) -> List[int]
     """
@@ -783,14 +778,19 @@ def start():
     running = True
     sampling_counters.clear()
 
-    
+
+TOP_DIR = os.path.join(os.getcwd(), '')     # current dir with trailing slash
+TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
+TOP_DIR_LEN = len(TOP_DIR)
+
+
 def set_top_dir(directory):
     global TOP_DIR, TOP_DIR_DOT, TOP_DIR_LEN
     TOP_DIR = directory
     TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
     TOP_DIR_LEN = len(TOP_DIR)
 
-    
+
 def default_filter_filename(filename):
     # type: (Optional[str]) -> Optional[str]
     """Default filter for filenames.
