@@ -1,6 +1,8 @@
+os: linux
+dist: xenial
 language: python
 cache: pip
-matrix:
+jobs:
     include:
         - python: '2.7'
         - python: '3.4'
@@ -10,15 +12,16 @@ matrix:
         - python: '3.6'
           env: USE_MYPY=true
         - python: '3.7'
-          dist: xenial        # needed because Python 3.7 is broken on travis CI Trusty
-          sudo: true
           env: USE_MYPY=true
-        - python: '3.8-dev'
-          dist: xenial        # needed because Python 3.8 is broken on travis CI Trusty
-          sudo: true
+        - python: '3.8'
+          env: USE_MYPY=true
+        - python: '3.9'
+          env: USE_MYPY=true
+        - python: 'nightly'
           env: USE_MYPY=true
     allow_failures:
-        - python: 3.8-dev
+        - python: '3.5.1'
+        - python: 'nightly'
   
 install:
     - pip install -r requirements.txt
