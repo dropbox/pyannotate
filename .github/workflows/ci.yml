@@ -1,0 +1,69 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '2.7'
+          - '3.5'
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
+        experimental:
+          - false
+        os: [ubuntu-latest]
+        include:
+          # Python 3.4 is not on ubuntu-latest
+          - python-version: '3.4'
+            os: ubuntu-18.04
+            experimental: false
+
+          # Python 3.10 is currently failing, but this may be OK
+          - python-version: '3.10.0-alpha - 3.10'
+            os: ubuntu-latest
+            experimental: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        id: install
+        run: |
+          set -x
+          pip install -r requirements.txt
+
+          # install mypy on Python 3.6+
+          if python -c \
+              'import sys; sys.exit(0 if sys.version_info >= (3, 6) else 1)'; then
+            pip install -U mypy
+            echo "::set-output name=mypy::true"
+          fi
+
+      - name: Run pytest
+        run: |
+          pytest
+
+      - name: Run mypy
+        if: ${{ steps.install.outputs.mypy }}
+        run: |
+          mypy pyannotate_*
