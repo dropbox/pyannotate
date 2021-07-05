@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 120
+ignore = E501
+show-source = true
+exclude =
+    .git
+    __pycache__
+    .venv
+    .vscode
+    .github
