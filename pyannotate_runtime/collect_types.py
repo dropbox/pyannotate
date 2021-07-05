@@ -79,6 +79,7 @@ def _my_hash(arg_list):
 FunctionData = TypedDict('FunctionData', {'path': str,
                                           'line': int,
                                           'func_name': str,
+                                          'caller_names': List[str],
                                           'type_comments': List[str],
                                           'samples': int})
 
@@ -402,10 +403,10 @@ ResolvedTypes = NamedTuple('ResolvedTypes',
                             ('varargs', Optional[List[InternalType]])])
 
 # Task queue entry for calling a function with specific argument types
-KeyAndTypes = NamedTuple('KeyAndTypes', [('key', FunctionKey), ('types', ResolvedTypes)])
+KeyAndTypes = NamedTuple('KeyAndTypes', [('key', FunctionKey), ('types', ResolvedTypes), ('caller_name', str)])
 
 # Task queue entry for returning from a function with a value
-KeyAndReturn = NamedTuple('KeyAndReturn', [('key', FunctionKey), ('return_type', InternalType)])
+KeyAndReturn = NamedTuple('KeyAndReturn', [('key', FunctionKey), ('return_type', InternalType), ('caller_name', str)])
 
 # Combined argument and return types for a single function call
 Signature = NamedTuple('Signature', [('args', 'ArgTypes'), ('return_type', InternalType)])
@@ -445,7 +446,7 @@ EMPTY_ITERATOR_TYPE = IteratorType(TentativeType())
 
 # TODO: Make this faster
 def get_function_name_from_frame(frame):
-    # type: (Any) -> str
+    # type: (Any) -> Optional[str]
     """
     Heuristic to find the class-specified name by @guido
 
@@ -472,6 +473,8 @@ def get_function_name_from_frame(frame):
     code = frame.f_code
     # This ought to be aggressively cached with the code object as key.
     funcname = code.co_name
+    if funcname == "<module>":
+        return None
     if code.co_varnames:
         varname = code.co_varnames[0]
         if varname == 'self':
@@ -494,6 +497,16 @@ def get_function_name_from_frame(frame):
                             return '%s.%s' % (cls.__name__, funcname)
     return funcname
 
+def get_caller_info_from_frame(frame):
+    # type: (Any) -> str
+    """
+    Get caller function module, name and line number from frame
+    """
+    caller_frame = frame.f_back
+    caller_name = '.'.join(filter(None, [caller_frame.f_globals["__name__"], get_function_name_from_frame(caller_frame)]))
+    caller_lineno = caller_frame.f_lineno
+
+    return f"{caller_name} : {caller_lineno}"
 
 def resolve_type(arg):
     # type: (object) -> InternalType
@@ -629,7 +642,7 @@ collected_args = {}  # type: Dict[FunctionKey, ArgTypes]
 
 # Collected unique type comments for each function, of form '(arg, ...) -> ret'.
 # There at most MAX_ITEMS_PER_FUNCTION items.
-collected_signatures = {}  # type: Dict[FunctionKey, Set[Tuple[ArgTypes, InternalType]]]
+collected_signatures = {}  # type: Dict[FunctionKey, Dict[Tuple[ArgTypes, InternalType], List[str]]]
 
 # Number of samples collected per function (we also count ones ignored after reaching
 # the maximum comment count per function).
@@ -653,8 +666,8 @@ def _make_type_comment(args_info, return_type):
     return '(%s) -> %s' % (args_string, return_name)
 
 
-def _flush_signature(key, return_type):
-    # type: (FunctionKey, InternalType) -> None
+def _flush_signature(key, return_type, caller_name):
+    # type: (FunctionKey, InternalType, str) -> None
     """Store signature for a function.
 
     Assume that argument types have been stored previously to
@@ -664,10 +677,11 @@ def _flush_signature(key, return_type):
     As a side effect, removes the argument types for the function from
     'collected_args'.
     """
-    signatures = collected_signatures.setdefault(key, set())
+    signatures = collected_signatures.setdefault(key, {})
     args_info = collected_args.pop(key)
     if len(signatures) < MAX_ITEMS_PER_FUNCTION:
-        signatures.add((args_info, return_type))
+        caller_names = signatures.setdefault((args_info, return_type), [])
+        caller_names.append(caller_name)
     num_samples[key] = num_samples.get(key, 0) + 1
 
 
@@ -687,16 +701,16 @@ def type_consumer():
                 # Previous call didn't get a corresponding return, perhaps because we
                 # stopped collecting types in the middle of a call or because of
                 # a recursive function.
-                _flush_signature(item.key, UnknownType)
+                _flush_signature(item.key, UnknownType, item.caller_name)
             collected_args[item.key] = ArgTypes(item.types)
         else:
             assert isinstance(item, KeyAndReturn)
             if item.key in collected_args:
-                _flush_signature(item.key, item.return_type)
+                _flush_signature(item.key, item.return_type, item.caller_name)
         _task_queue.task_done()
 
 
-_task_queue = Queue()  # type: Queue[Union[KeyAndTypes, KeyAndReturn]]
+_task_queue = Queue()  # type: Queue[Union[KeyAndTypes, KeyAndReturn, str]]
 _consumer_thread = Thread(target=type_consumer)
 _consumer_thread.daemon = True
 _consumer_thread.start()
@@ -863,6 +877,7 @@ def _trace_dispatch(frame, event, arg):
 
     # Track calls under current directory only.
     filename = _filter_filename(code.co_filename)
+    caller_name = get_caller_info_from_frame(frame)
     if filename:
         func_name = get_function_name_from_frame(frame)
         if not func_name or func_name[0] == '<':
@@ -874,7 +889,7 @@ def _trace_dispatch(frame, event, arg):
                 # TODO(guido): Make this faster
                 arg_info = inspect.getargvalues(frame)  # type: ArgInfo
                 resolved_types = prep_args(arg_info)
-                _task_queue.put(KeyAndTypes(function_key, resolved_types))
+                _task_queue.put(KeyAndTypes(function_key, resolved_types, caller_name))
             elif event == 'return':
                 # This event is also triggered if a function yields or raises an exception.
                 # We can tell the difference by looking at the bytecode.
@@ -898,7 +913,7 @@ def _trace_dispatch(frame, event, arg):
                     # TODO: returning non-trivial values from generators, per PEP 380;
                     # and async def / await stuff.
                     t = NoReturnType
-                _task_queue.put(KeyAndReturn(function_key, t))
+                _task_queue.put(KeyAndReturn(function_key, t, caller_name))
     else:
         sampling_counters[key] = None  # We're not interested in this function.
 
@@ -926,12 +941,17 @@ def _dump_impl():
                             key=(lambda p: (p[0].path, p[0].line, p[0].func_name)))
     res = []  # type: List[FunctionData]
     for function_key, signatures in sorted_by_file:
-        comments = [_make_type_comment(args, ret_type) for args, ret_type in signatures]
+        comments = []
+        caller_names = []
+        for (args, ret_type), caller_name in signatures.items():
+            comments.append(_make_type_comment(args, ret_type))
+            caller_names.append(caller_name)
         res.append(
             {
                 'path': function_key.path,
                 'line': function_key.line,
                 'func_name': function_key.func_name,
+                'caller_names': caller_names,
                 'type_comments': comments,
                 'samples': num_samples.get(function_key, 0),
             }
