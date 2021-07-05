@@ -231,6 +231,20 @@ class TestBaseClass(unittest.TestCase):
         assert len(item['type_comments']) == len(comments)
         assert os.path.join(collect_types.TOP_DIR, item['path']) == __file__
 
+    def assert_caller_name(self, func_name, caller_names):
+        # type: (str, str) -> None
+        """Assert that we generated expected caller_names for the func_name function in self.stats"""
+        stat_items = [item for item in self.stats if item.get('func_name') == func_name]
+        if not caller_names and not stat_items:
+            # If we expect no caller_name, it's okay if nothing was collected.
+            return
+        assert len(stat_items) == 1
+        item = stat_items[0]['caller_names'][0][0]
+        item_caller_names = item.split()[0]
+        if item_caller_names != caller_names:
+            print('Actual: ' + item_caller_names)
+            print('Expected: ' + caller_names)
+            assert item_caller_names == caller_names
 
 class TestCollectTypes(TestBaseClass):
 
@@ -264,6 +278,9 @@ class TestCollectTypes(TestBaseClass):
         self.assert_type_comments('TestCollectTypes.foo', ['(int, List[str]) -> None'])
         self.assert_type_comments('TestCollectTypes.bar', ['(int, List[str]) -> int'])
         self.assert_type_comments('TestCollectTypes.baz', ['(List[str]) -> Set[int]'])
+        self.assert_caller_name('TestCollectTypes.foo', 'pyannotate_runtime.tests.test_collect_types.TestCollectTypes.test_type_collection_on_main_thread')
+        self.assert_caller_name('TestCollectTypes.bar', 'pyannotate_runtime.tests.test_collect_types.TestCollectTypes.foo')
+        self.assert_caller_name('TestCollectTypes.baz', 'pyannotate_runtime.tests.test_collect_types.TestCollectTypes.bar')
 
     def bar_another_thread(self, int_arg, list_arg):
         # type: (Any, Any) -> Any
