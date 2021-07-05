@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "pyannotate"
+version = "1.2.0"
+description = "Auto-generate PEP-484 annotations"
+authors = ["dropbox <help@dropbox.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.6.2,<4.0"
+
+[tool.poetry.dev-dependencies]
+mypy-extensions = ">=0.3.0"
+pytest = ">=3.3.0"
+setuptools = ">=28.8.0"
+six = ">=1.11.0"
+typing = ">=3.6.2;"
+python_version = "^0.0.2"
+mock = "^4.0.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+

@@ -7,3 +7,5 @@ __pycache__
 /env*
 *~
 .mypy_cache/
+poetry.lock
+.venv
