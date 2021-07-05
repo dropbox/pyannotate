@@ -6,7 +6,7 @@ import logging
 import os
 import sys
 from lib2to3.main import StdoutRefactoringTool
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from pyannotate_tools.annotations.main import generate_annotations_json_string, unify_type_comments
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson

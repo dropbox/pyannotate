@@ -19,7 +19,6 @@ The module is based on Tony's 2016 prototype D219371.
 
 from __future__ import absolute_import, division, print_function
 
-import collections
 import inspect
 import json
 import os

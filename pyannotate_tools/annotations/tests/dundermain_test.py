@@ -15,7 +15,7 @@ if sys.version_info[0] == 2:
 else:
     from io import StringIO
 
-from typing import Iterator, List
+from typing import List
 
 from pyannotate_tools.annotations.__main__ import main as dunder_main
 
@@ -120,11 +120,11 @@ gcd.py
             sys.stdout = save_stdout
             sys.stderr = save_stderr
         stdout_value = stdout.getvalue()
-        stderr_value = stderr.getvalue()
+        # stderr_value = stderr.getvalue()
         assert re.match(stdout_pattern, stdout_value)
-        match = re.match(stderr_pattern, stderr_value)
-        ## if not match: print("\nNah")
-        ## else: print("\nYa!")
-        ## print(stderr_value)
-        ## import pdb; pdb.set_trace()
+        # match = re.match(stderr_pattern, stderr_value)
+        # if not match: print("\nNah")
+        # else: print("\nYa!")
+        # print(stderr_value)
+        # import pdb; pdb.set_trace()
         assert code == exit_code

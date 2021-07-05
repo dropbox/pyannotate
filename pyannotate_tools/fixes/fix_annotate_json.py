@@ -233,8 +233,7 @@ class FixAnnotateJson(FixAnnotate):
         items = [
             it
             for it in data
-            if it["func_name"] == funcname
-            and (
+            if it["func_name"] == funcname and (
                 it["path"] == self.filename
                 or os.path.join(self.__class__.top_dir, it["path"]) == os.path.abspath(self.filename)
             )
@@ -245,9 +244,9 @@ class FixAnnotateJson(FixAnnotate):
             # 2) method decorators
             # as a cheap and dirty solution we just return the nearest one by the line number
             # (keep the commented-out log_message call in case we need to come back to this)
-            ## self.log_message("%s:%d: duplicate signatures for %s (at lines %s)" %
-            ##                  (items[0]['path'], node.get_lineno(), items[0]['func_name'],
-            ##                   ", ".join(str(it['line']) for it in items)))
+            # self.log_message("%s:%d: duplicate signatures for %s (at lines %s)" %
+            #                  (items[0]['path'], node.get_lineno(), items[0]['func_name'],
+            #                  ", ".join(str(it['line']) for it in items)))
             items.sort(key=lambda it: abs(node.get_lineno() - it["line"]))
         if items:
             it = items[0]

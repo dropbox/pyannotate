@@ -7,14 +7,14 @@ This transforms e.g.
 
 into a type annoted version:
 
-	  def foo(self, bar, baz=12):
-	      # type: (Any, int) -> Any            # noqa: F821
-	      return bar + baz
+  def foo(self, bar, baz=12):
+      # type: (Any, int) -> Any            # noqa: F821
+      return bar + baz
 
 or (when setting options['annotation_style'] to 'py3'):
 
-	  def foo(self, bar : Any, baz : int = 12) -> Any:
-	      return bar + baz
+  def foo(self, bar : Any, baz : int = 12) -> Any:
+      return bar + baz
 
 
 It does not do type inference but it recognizes some basic default
@@ -97,7 +97,7 @@ class FixAnnotate(BaseFix):
 
         # Python 3 style return annotation are already skipped by the pattern
 
-        ### Python 3 style argument annotation structure
+        # Python 3 style argument annotation structure
         #
         # Structure of the arguments tokens for one positional argument without default value :
         # + LPAR '('
@@ -225,7 +225,7 @@ class FixAnnotate(BaseFix):
                 break
 
         # when self or cls is not annotated, argleaves == argtypes+1
-        argleaves = argleaves[len(argleaves) - len(argtypes) :]
+        argleaves = argleaves[len(argleaves) - len(argtypes):]
 
         for ch_withstyle, chtype in zip(argleaves, argtypes):
             style, ch = ch_withstyle
@@ -245,7 +245,7 @@ class FixAnnotate(BaseFix):
                 if not nextch.prefix[:1].isspace():
                     nextch.prefix = " " + nextch.prefix
                 nextch = nextch.next_sibling
-                assert nextch != None
+                assert nextch is not None
                 if not nextch.prefix[:1].isspace():
                     nextch.prefix = " " + nextch.prefix
 

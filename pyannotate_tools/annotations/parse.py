@@ -207,7 +207,7 @@ def tokenize(s):
                 # than crashing.
                 fullname = "Any"
             tokens.append(DottedName(fullname))
-            s = s[len(m.group(0)) :]
+            s = s[len(m.group(0)):]
 
 
 def parse_type_comment(comment):
