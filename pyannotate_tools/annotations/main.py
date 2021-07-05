@@ -10,16 +10,14 @@ from pyannotate_tools.annotations.parse import parse_json
 from pyannotate_tools.annotations.types import ARG_STAR, ARG_STARSTAR
 
 # Schema of a function signature in the output
-Signature = TypedDict('Signature', {'arg_types': List[str],
-                                    'return_type': str})
+Signature = TypedDict("Signature", {"arg_types": List[str], "return_type": str})
 
 # Schema of a function in the output
-FunctionData = TypedDict('FunctionData', {'path': str,
-                                          'line': int,
-                                          'func_name': str,
-                                          'signature': Signature,
-                                          'samples': int})
-SIMPLE_TYPES = {'None', 'int', 'float', 'str', 'bytes', 'bool'}
+FunctionData = TypedDict(
+    "FunctionData", {"path": str, "line": int, "func_name": str, "signature": Signature, "samples": int}
+)
+SIMPLE_TYPES = {"None", "int", "float", "str", "bytes", "bool"}
+
 
 def unify_type_comments(type_comments):
     # type: (List[str]) -> Signature
@@ -28,20 +26,21 @@ def unify_type_comments(type_comments):
     for arg, kind in arg_types:
         arg_str = str(arg)
         if kind == ARG_STAR:
-            arg_str = '*%s' % arg_str
+            arg_str = "*%s" % arg_str
         elif kind == ARG_STARSTAR:
-            arg_str = '**%s' % arg_str
+            arg_str = "**%s" % arg_str
         arg_strs.append(arg_str)
     return {
-        'arg_types': arg_strs,
-        'return_type': str(return_type),
+        "arg_types": arg_strs,
+        "return_type": str(return_type),
     }
 
 
 def is_signature_simple(signature):
     # type: (Signature) -> bool
-    return (all(x.lstrip('*') in SIMPLE_TYPES for x in signature['arg_types']) and
-            signature['return_type'] in SIMPLE_TYPES)
+    return (
+        all(x.lstrip("*") in SIMPLE_TYPES for x in signature["arg_types"]) and signature["return_type"] in SIMPLE_TYPES
+    )
 
 
 def generate_annotations_json_string(source_path, only_simple=False):
@@ -59,11 +58,11 @@ def generate_annotations_json_string(source_path, only_simple=False):
         signature = unify_type_comments(item.type_comments)
         if is_signature_simple(signature) or not only_simple:
             data = {
-                'path': item.path,
-                'line': item.line,
-                'func_name': item.func_name,
-                'signature': signature,
-                'samples': item.samples
+                "path": item.path,
+                "line": item.line,
+                "func_name": item.func_name,
+                "signature": signature,
+                "samples": item.samples,
             }  # type: FunctionData
             results.append(data)
     return results
@@ -73,5 +72,5 @@ def generate_annotations_json(source_path, target_path, only_simple=False):
     # type: (str, str, bool) -> None
     """Like generate_annotations_json_string() but writes JSON to a file."""
     results = generate_annotations_json_string(source_path, only_simple=only_simple)
-    with open(target_path, 'w') as f:
+    with open(target_path, "w") as f:
         json.dump(results, f, sort_keys=True, indent=4)

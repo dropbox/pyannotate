@@ -39,7 +39,8 @@ from .fix_annotate import FixAnnotate
 # Taken from mypy codebase:
 # https://github.com/python/mypy/blob/745d300b8304c3dcf601477762bf9d70b9a4619c/mypy/main.py#L503
 
-PY_EXTENSIONS = ['.pyi', '.py']
+PY_EXTENSIONS = [".pyi", ".py"]
+
 
 def crawl_up(arg):
     # type: (str) -> Tuple[str, str]
@@ -53,11 +54,12 @@ def crawl_up(arg):
         dir, base = os.path.split(dir)
         if not base:
             break
-        if mod == '__init__' or not mod:
+        if mod == "__init__" or not mod:
             mod = base
         else:
-            mod = base + '.' + mod
+            mod = base + "." + mod
     return dir, mod
+
 
 def strip_py(arg):
     # type: (str) -> Optional[str]
@@ -66,8 +68,9 @@ def strip_py(arg):
     """
     for ext in PY_EXTENSIONS:
         if arg.endswith(ext):
-            return arg[:-len(ext)]
+            return arg[: -len(ext)]
     return None
+
 
 def get_init_file(dir):
     # type: (str) -> Optional[str]
@@ -77,10 +80,11 @@ def get_init_file(dir):
     This prefers .pyi over .py (because of the ordering of PY_EXTENSIONS).
     """
     for ext in PY_EXTENSIONS:
-        f = os.path.join(dir, '__init__' + ext)
+        f = os.path.join(dir, "__init__" + ext)
         if os.path.isfile(f):
             return f
     return None
+
 
 def get_funcname(node):
     # type: (Optional[Node]) -> Text
@@ -101,7 +105,8 @@ def get_funcname(node):
             assert isinstance(name, Leaf)  # Same as previous, for mypy
             components.append(name.value)
         node = node.parent
-    return '.'.join(reversed(components))
+    return ".".join(reversed(components))
+
 
 def count_args(node, results):
     # type: (Node, Dict[str, Base]) -> Tuple[int, bool, bool, bool]
@@ -117,7 +122,7 @@ def count_args(node, results):
     selfish = False
     star = False
     starstar = False
-    args = results.get('args')
+    args = results.get("args")
     if isinstance(args, Node):
         children = args.children
     elif isinstance(args, Leaf):
@@ -140,7 +145,7 @@ def count_args(node, results):
                 starstar = True
             elif child.type == token.NAME:
                 if count == 0:
-                    if child.value in ('self', 'cls'):
+                    if child.value in ("self", "cls"):
                         selfish = True
                 count += 1
                 if previous_token_is_star:
@@ -150,6 +155,7 @@ def count_args(node, results):
             if child.type != token.STAR:
                 previous_token_is_star = False
     return count, selfish, star, starstar
+
 
 class FixAnnotateJson(FixAnnotate):
 
@@ -177,7 +183,7 @@ class FixAnnotateJson(FixAnnotate):
         return self._current_module
 
     def make_annotation(self, node, results):
-        name = results['name']
+        name = results["name"]
         assert isinstance(name, Leaf), repr(name)
         assert name.type == token.NAME, repr(name)
         funcname = get_funcname(node)
@@ -190,12 +196,12 @@ class FixAnnotateJson(FixAnnotate):
         # that out, like dmypy suggest, can use it.)
         if not res:
             decs = self.get_decorators(node)
-            if 'staticmethod' in decs or 'classmethod' in decs:
+            if "staticmethod" in decs or "classmethod" in decs:
                 res = self.get_annotation_from_stub(node, results, name.value)
 
         return res
 
-    stub_json_file = os.getenv('TYPE_COLLECTION_JSON')
+    stub_json_file = os.getenv("TYPE_COLLECTION_JSON")
     # JSON data for the current file
     stub_json = None  # type: List[Dict[str, Any]]
 
@@ -225,10 +231,13 @@ class FixAnnotateJson(FixAnnotate):
         data = self.__class__.stub_json
         # We are using relative paths in the JSON.
         items = [
-            it for it in data
-            if it['func_name'] == funcname and
-               (it['path'] == self.filename or
-                os.path.join(self.__class__.top_dir, it['path']) == os.path.abspath(self.filename))
+            it
+            for it in data
+            if it["func_name"] == funcname
+            and (
+                it["path"] == self.filename
+                or os.path.join(self.__class__.top_dir, it["path"]) == os.path.abspath(self.filename)
+            )
         ]
         if len(items) > 1:
             # this can happen, because of
@@ -239,31 +248,33 @@ class FixAnnotateJson(FixAnnotate):
             ## self.log_message("%s:%d: duplicate signatures for %s (at lines %s)" %
             ##                  (items[0]['path'], node.get_lineno(), items[0]['func_name'],
             ##                   ", ".join(str(it['line']) for it in items)))
-            items.sort(key=lambda it: abs(node.get_lineno() - it['line']))
+            items.sort(key=lambda it: abs(node.get_lineno() - it["line"]))
         if items:
             it = items[0]
             # If the line number is too far off, the source probably drifted
             # since the trace was collected; it's better to skip this node.
             # (Allow some drift, since decorators also cause an offset.)
-            if abs(node.get_lineno() - it['line']) >= self.line_drift:
-                self.log_message("%s:%d: '%s' signature from line %d too far away -- skipping" %
-                                 (self.filename, node.get_lineno(), it['func_name'], it['line']))
+            if abs(node.get_lineno() - it["line"]) >= self.line_drift:
+                self.log_message(
+                    "%s:%d: '%s' signature from line %d too far away -- skipping"
+                    % (self.filename, node.get_lineno(), it["func_name"], it["line"])
+                )
                 return None
-            if 'signature' in it:
-                sig = it['signature']
-                arg_types = sig['arg_types']
+            if "signature" in it:
+                sig = it["signature"]
+                arg_types = sig["arg_types"]
                 # Passes 1-2 don't always understand *args or **kwds,
                 # so add '*Any' or '**Any' at the end if needed.
                 count, selfish, star, starstar = count_args(node, results)
                 for arg_type in arg_types:
-                    if arg_type.startswith('**'):
+                    if arg_type.startswith("**"):
                         starstar = False
-                    elif arg_type.startswith('*'):
+                    elif arg_type.startswith("*"):
                         star = False
                 if star:
-                    arg_types.append('*Any')
+                    arg_types.append("*Any")
                 if starstar:
-                    arg_types.append('**Any')
+                    arg_types.append("**Any")
                 # Pass 1 omits the first arg iff it's named 'self' or 'cls',
                 # even if it's not a method, so insert `Any` as needed
                 # (but only if it's not actually a method).
@@ -271,25 +282,26 @@ class FixAnnotateJson(FixAnnotate):
                     if self.is_method(node):
                         count -= 1  # Leave out the type for 'self' or 'cls'
                     else:
-                        arg_types.insert(0, 'Any')
+                        arg_types.insert(0, "Any")
                 # If after those adjustments the count is still off,
                 # print a warning and skip this node.
                 if len(arg_types) != count:
-                    self.log_message("%s:%d: source has %d args, annotation has %d -- skipping" %
-                                     (self.filename, node.get_lineno(), count, len(arg_types)))
+                    self.log_message(
+                        "%s:%d: source has %d args, annotation has %d -- skipping"
+                        % (self.filename, node.get_lineno(), count, len(arg_types))
+                    )
                     return None
-                ret_type = sig['return_type']
+                ret_type = sig["return_type"]
                 arg_types = [self.update_type_names(arg_type) for arg_type in arg_types]
                 # Avoid common error "No return value expected"
-                if ret_type == 'None' and self.has_return_exprs(node):
-                    ret_type = 'Optional[Any]'
+                if ret_type == "None" and self.has_return_exprs(node):
+                    ret_type = "Optional[Any]"
                 # Special case for generators.
-                if (self.is_generator(node) and
-                    not (ret_type == 'Iterator' or ret_type.startswith('Iterator['))):
-                    if ret_type.startswith('Optional['):
-                        assert ret_type[-1] == ']'
+                if self.is_generator(node) and not (ret_type == "Iterator" or ret_type.startswith("Iterator[")):
+                    if ret_type.startswith("Optional["):
+                        assert ret_type[-1] == "]"
                         ret_type = ret_type[9:-1]
-                    ret_type = 'Iterator[%s]' % ret_type
+                    ret_type = "Iterator[%s]" % ret_type
                 ret_type = self.update_type_names(ret_type)
                 return arg_types, ret_type
         return None
@@ -297,27 +309,27 @@ class FixAnnotateJson(FixAnnotate):
     def update_type_names(self, type_str):
         # Replace e.g. `List[pkg.mod.SomeClass]` with
         # `List[SomeClass]` and remember to import it.
-        return re.sub(r'[\w.:]+', self.type_updater, type_str)
+        return re.sub(r"[\w.:]+", self.type_updater, type_str)
 
     def type_updater(self, match):
         # Replace `pkg.mod.SomeClass` with `SomeClass`
         # and remember to import it.
         word = match.group()
-        if word == '...':
+        if word == "...":
             return word
-        if '.' not in word and ':' not in word:
+        if "." not in word and ":" not in word:
             # Assume it's either builtin or from `typing`
             if word in typing_all:
-                self.add_import('typing', word)
+                self.add_import("typing", word)
             return word
         # If there is a :, treat that as the separator between the
         # module and the class.  Otherwise assume everything but the
         # last element is the module.
-        if ':' in word:
-            mod, name = word.split(':')
-            to_import = name.split('.', 1)[0]
+        if ":" in word:
+            mod, name = word.split(":")
+            to_import = name.split(".", 1)[0]
         else:
-            mod, name = word.rsplit('.', 1)
+            mod, name = word.rsplit(".", 1)
             to_import = name
         self.add_import(mod, to_import)
         return name

@@ -54,7 +54,7 @@ class FixAnnotate(BaseFix):
               funcdef< 'def' name=any parameters=parameters< '(' [args=any] rpar=')' > ':' suite=any+ >
               """
 
-    _maxfixes = os.getenv('MAXFIXES')
+    _maxfixes = os.getenv("MAXFIXES")
     counter = None if not _maxfixes else int(_maxfixes)
 
     def transform(self, node, results):
@@ -63,18 +63,18 @@ class FixAnnotate(BaseFix):
                 return
 
         # Check if there's already a long-form annotation for some argument.
-        parameters = results.get('parameters')
+        parameters = results.get("parameters")
         if parameters is not None:
             for ch in parameters.pre_order():
-                if ch.prefix.lstrip().startswith('# type:'):
+                if ch.prefix.lstrip().startswith("# type:"):
                     return
-        args = results.get('args')
+        args = results.get("args")
         if args is not None:
             for ch in args.pre_order():
-                if ch.prefix.lstrip().startswith('# type:'):
+                if ch.prefix.lstrip().startswith("# type:"):
                     return
 
-        children = results['suite'][0].children
+        children = results["suite"][0].children
 
         # NOTE: I've reverse-engineered the structure of the parse tree.
         # It's always a list of nodes, the first of which contains the
@@ -92,7 +92,7 @@ class FixAnnotate(BaseFix):
 
         # Check if there's already an annotation.
         for ch in children:
-            if ch.prefix.lstrip().startswith('# type:'):
+            if ch.prefix.lstrip().startswith("# type:"):
                 return  # There's already a # type: comment here; don't change anything.
 
         # Python 3 style return annotation are already skipped by the pattern
@@ -174,7 +174,7 @@ class FixAnnotate(BaseFix):
             return
         argtypes, restype = annot
 
-        if self.options['annotation_style'] == 'py3':
+        if self.options["annotation_style"] == "py3":
             self.add_py3_annot(argtypes, restype, node, results)
         else:
             self.add_py2_annot(argtypes, restype, node, results)
@@ -187,7 +187,7 @@ class FixAnnotate(BaseFix):
         self.patch_imports(argtypes + [restype], node)
 
     def add_py3_annot(self, argtypes, restype, node, results):
-        args = results.get('args')
+        args = results.get("args")
 
         argleaves = []
         if args is None:
@@ -201,16 +201,16 @@ class FixAnnotate(BaseFix):
             it = iter(args.children)
 
         for ch in it:
-            argstyle = 'name'
+            argstyle = "name"
             if ch.type == token.STAR:
                 # *arg part
-                argstyle = 'star'
+                argstyle = "star"
                 ch = next(it)
                 if ch.type == token.COMMA:
                     continue
             elif ch.type == token.DOUBLESTAR:
                 # *arg part
-                argstyle = 'keyword'
+                argstyle = "keyword"
                 ch = next(it)
             assert ch.type == token.NAME
             argleaves.append((argstyle, ch))
@@ -225,67 +225,66 @@ class FixAnnotate(BaseFix):
                 break
 
         # when self or cls is not annotated, argleaves == argtypes+1
-        argleaves = argleaves[len(argleaves) - len(argtypes):]
+        argleaves = argleaves[len(argleaves) - len(argtypes) :]
 
         for ch_withstyle, chtype in zip(argleaves, argtypes):
             style, ch = ch_withstyle
-            if style == 'star':
-                assert chtype[0] == '*'
-                assert chtype[1] != '*'
+            if style == "star":
+                assert chtype[0] == "*"
+                assert chtype[1] != "*"
                 chtype = chtype[1:]
-            elif style == 'keyword':
-                assert chtype[0:2] == '**'
-                assert chtype[2] != '*'
+            elif style == "keyword":
+                assert chtype[0:2] == "**"
+                assert chtype[2] != "*"
                 chtype = chtype[2:]
-            ch.value = '%s: %s' % (ch.value, chtype)
+            ch.value = "%s: %s" % (ch.value, chtype)
 
             # put spaces around the equal sign
             if ch.next_sibling and ch.next_sibling.type == token.EQUAL:
                 nextch = ch.next_sibling
                 if not nextch.prefix[:1].isspace():
-                    nextch.prefix = ' ' + nextch.prefix
+                    nextch.prefix = " " + nextch.prefix
                 nextch = nextch.next_sibling
                 assert nextch != None
                 if not nextch.prefix[:1].isspace():
-                    nextch.prefix = ' ' + nextch.prefix
+                    nextch.prefix = " " + nextch.prefix
 
         # Add return annotation
-        rpar = results['rpar']
-        rpar.value = '%s -> %s' % (rpar.value, restype)
+        rpar = results["rpar"]
+        rpar.value = "%s -> %s" % (rpar.value, restype)
 
         rpar.changed()
 
     def add_py2_annot(self, argtypes, restype, node, results):
-        children = results['suite'][0].children
+        children = results["suite"][0].children
 
         # Insert '# type: {annot}' comment.
         # For reference, see lib2to3/fixes/fix_tuple_params.py in stdlib.
         if len(children) >= 1 and children[0].type != token.NEWLINE:
             # one liner function
-            if children[0].prefix.strip() == '':
-                children[0].prefix = ''
-                children.insert(0, Leaf(token.NEWLINE, '\n'))
-                children.insert(
-                    1, Leaf(token.INDENT, find_indentation(node) + '    '))
-                children.append(Leaf(token.DEDENT, ''))
+            if children[0].prefix.strip() == "":
+                children[0].prefix = ""
+                children.insert(0, Leaf(token.NEWLINE, "\n"))
+                children.insert(1, Leaf(token.INDENT, find_indentation(node) + "    "))
+                children.append(Leaf(token.DEDENT, ""))
         if len(children) >= 2 and children[1].type == token.INDENT:
-            degen_str = '(...) -> %s' % restype
-            short_str = '(%s) -> %s' % (', '.join(argtypes), restype)
+            degen_str = "(...) -> %s" % restype
+            short_str = "(%s) -> %s" % (", ".join(argtypes), restype)
             if (len(short_str) > 64 or len(argtypes) > 5) and len(short_str) > len(degen_str):
                 self.insert_long_form(node, results, argtypes)
                 annot_str = degen_str
             else:
                 annot_str = short_str
-            children[1].prefix = '%s# type: %s\n%s' % (children[1].value, annot_str,
-                                                       children[1].prefix)
+            children[1].prefix = "%s# type: %s\n%s" % (children[1].value, annot_str, children[1].prefix)
             children[1].changed()
         else:
-            self.log_message("%s:%d: cannot insert annotation for one-line function" %
-                             (self.filename, node.get_lineno()))
+            self.log_message(
+                "%s:%d: cannot insert annotation for one-line function" % (self.filename, node.get_lineno())
+            )
 
     def insert_long_form(self, node, results, argtypes):
         argtypes = list(argtypes)  # We destroy it
-        args = results['args']
+        args = results["args"]
         if isinstance(args, Node):
             children = args.children
         elif isinstance(args, Leaf):
@@ -295,41 +294,40 @@ class FixAnnotate(BaseFix):
         # Interpret children according to the following grammar:
         # (('*'|'**')? NAME ['=' expr] ','?)*
         flag = False  # Set when the next leaf should get a type prefix
-        indent = ''  # Will be set by the first child
+        indent = ""  # Will be set by the first child
 
         def set_prefix(child):
             if argtypes:
-                arg = argtypes.pop(0).lstrip('*')
+                arg = argtypes.pop(0).lstrip("*")
             else:
-                arg = 'Any'  # Somehow there aren't enough args
+                arg = "Any"  # Somehow there aren't enough args
             if not arg:
                 # Skip self (look for 'check_self' below)
                 prefix = child.prefix.rstrip()
             else:
-                prefix = '  # type: ' + arg
+                prefix = "  # type: " + arg
                 old_prefix = child.prefix.strip()
                 if old_prefix:
-                    assert old_prefix.startswith('#')
-                    prefix += '  ' + old_prefix
-            child.prefix = prefix + '\n' + indent
+                    assert old_prefix.startswith("#")
+                    prefix += "  " + old_prefix
+            child.prefix = prefix + "\n" + indent
 
         check_self = self.is_method(node)
         for child in children:
             if check_self and isinstance(child, Leaf) and child.type == token.NAME:
                 check_self = False
-                if child.value in ('self', 'cls'):
-                    argtypes.insert(0, '')
+                if child.value in ("self", "cls"):
+                    argtypes.insert(0, "")
             if not indent:
-                indent = ' ' * child.column
-            if isinstance(child, Leaf) and child.value == ',':
+                indent = " " * child.column
+            if isinstance(child, Leaf) and child.value == ",":
                 flag = True
             elif isinstance(child, Leaf) and flag:
                 set_prefix(child)
                 flag = False
         need_comma = len(children) >= 1 and children[-1].type != token.COMMA
         if need_comma and len(children) >= 2:
-            if (children[-1].type == token.NAME and
-                    (children[-2].type in (token.STAR, token.DOUBLESTAR))):
+            if children[-1].type == token.NAME and (children[-2].type in (token.STAR, token.DOUBLESTAR)):
                 need_comma = False
         if need_comma:
             children.append(Leaf(token.COMMA, u","))
@@ -342,21 +340,21 @@ class FixAnnotate(BaseFix):
 
     def patch_imports(self, types, node):
         for typ in types:
-            if 'Any' in typ:
-                touch_import('typing', 'Any', node)
+            if "Any" in typ:
+                touch_import("typing", "Any", node)
                 break
 
     def make_annotation(self, node, results):
-        name = results['name']
+        name = results["name"]
         assert isinstance(name, Leaf), repr(name)
         assert name.type == token.NAME, repr(name)
         decorators = self.get_decorators(node)
         is_method = self.is_method(node)
-        if name.value == '__init__' or not self.has_return_exprs(node):
-            restype = 'None'
+        if name.value == "__init__" or not self.has_return_exprs(node):
+            restype = "None"
         else:
-            restype = 'Any'
-        args = results.get('args')
+            restype = "Any"
+        args = results.get("args")
         argtypes = []
         if isinstance(args, Node):
             children = args.children
@@ -366,43 +364,43 @@ class FixAnnotate(BaseFix):
             children = []
         # Interpret children according to the following grammar:
         # (('*'|'**')? NAME ['=' expr] ','?)*
-        stars = inferred_type = ''
+        stars = inferred_type = ""
         in_default = False
         at_start = True
         for child in children:
             if isinstance(child, Leaf):
-                if child.value in ('*', '**'):
+                if child.value in ("*", "**"):
                     stars += child.value
                 elif child.type == token.NAME and not in_default:
-                    if not is_method or not at_start or 'staticmethod' in decorators:
-                        inferred_type = 'Any'
+                    if not is_method or not at_start or "staticmethod" in decorators:
+                        inferred_type = "Any"
                     else:
                         # Always skip the first argument if it's named 'self'.
                         # Always skip the first argument of a class method.
-                        if child.value == 'self' or 'classmethod' in decorators:
+                        if child.value == "self" or "classmethod" in decorators:
                             pass
                         else:
-                            inferred_type = 'Any'
-                elif child.value == '=':
+                            inferred_type = "Any"
+                elif child.value == "=":
                     in_default = True
-                elif in_default and child.value != ',':
+                elif in_default and child.value != ",":
                     if child.type == token.NUMBER:
-                        if re.match(r'\d+[lL]?$', child.value):
-                            inferred_type = 'int'
+                        if re.match(r"\d+[lL]?$", child.value):
+                            inferred_type = "int"
                         else:
-                            inferred_type = 'float'  # TODO: complex?
+                            inferred_type = "float"  # TODO: complex?
                     elif child.type == token.STRING:
-                        if child.value.startswith(('u', 'U')):
-                            inferred_type = 'unicode'
+                        if child.value.startswith(("u", "U")):
+                            inferred_type = "unicode"
                         else:
-                            inferred_type = 'str'
-                    elif child.type == token.NAME and child.value in ('True', 'False'):
-                        inferred_type = 'bool'
-                elif child.value == ',':
+                            inferred_type = "str"
+                    elif child.type == token.NAME and child.value in ("True", "False"):
+                        inferred_type = "bool"
+                elif child.value == ",":
                     if inferred_type:
                         argtypes.append(stars + inferred_type)
                     # Reset
-                    stars = inferred_type = ''
+                    stars = inferred_type = ""
                     in_default = False
                     at_start = False
         if inferred_type:
@@ -428,7 +426,7 @@ class FixAnnotate(BaseFix):
         results = {}
         if not self.decorated.match(node.parent, results):
             return []
-        decorators = results.get('dd') or [results['d']]
+        decorators = results.get("dd") or [results["d"]]
         decs = []
         for d in decorators:
             for child in d.children:

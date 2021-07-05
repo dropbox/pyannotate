@@ -20,10 +20,10 @@ class ClassType(AbstractType):
 
     def __repr__(self):
         # type: () -> str
-        if self.name == 'Tuple' and len(self.args) == 1:
-            return 'Tuple[%s, ...]' % self.args[0]
+        if self.name == "Tuple" and len(self.args) == 1:
+            return "Tuple[%s, ...]" % self.args[0]
         elif self.args:
-            return '%s[%s]' % (self.name, ', '.join(str(arg) for arg in self.args))
+            return "%s[%s]" % (self.name, ", ".join(str(arg) for arg in self.args))
         else:
             return self.name
 
@@ -41,7 +41,7 @@ class AnyType(AbstractType):
 
     def __repr__(self):
         # type: () -> str
-        return 'Any'
+        return "Any"
 
     def __eq__(self, other):
         # type: (object) -> bool
@@ -49,7 +49,7 @@ class AnyType(AbstractType):
 
     def __hash__(self):
         # type: () -> int
-        return hash('Any')
+        return hash("Any")
 
 
 class NoReturnType(AbstractType):
@@ -57,7 +57,7 @@ class NoReturnType(AbstractType):
 
     def __repr__(self):
         # type: () -> str
-        return 'mypy_extensions.NoReturn'
+        return "mypy_extensions.NoReturn"
 
     def __eq__(self, other):
         # type: (object) -> bool
@@ -65,7 +65,7 @@ class NoReturnType(AbstractType):
 
     def __hash__(self):
         # type: () -> int
-        return hash('NoReturn')
+        return hash("NoReturn")
 
 
 class TupleType(AbstractType):
@@ -78,8 +78,8 @@ class TupleType(AbstractType):
     def __repr__(self):
         # type: () -> str
         if not self.items:
-            return 'Tuple[()]'  # Special case
-        return 'Tuple[%s]' % ', '.join(str(item) for item in self.items)
+            return "Tuple[()]"  # Special case
+        return "Tuple[%s]" % ", ".join(str(item) for item in self.items)
 
     def __eq__(self, other):
         # type: (object) -> bool
@@ -87,7 +87,7 @@ class TupleType(AbstractType):
 
     def __hash__(self):
         # type: () -> int
-        return hash(('tuple', self.items))
+        return hash(("tuple", self.items))
 
 
 class UnionType(AbstractType):
@@ -102,10 +102,10 @@ class UnionType(AbstractType):
         items = self.items
         if len(items) == 2:
             if is_none(items[0]):
-                return 'Optional[%s]' % items[1]
+                return "Optional[%s]" % items[1]
             elif is_none(items[1]):
-                return 'Optional[%s]' % items[0]
-        return 'Union[%s]' % ', '.join(str(item) for item in items)
+                return "Optional[%s]" % items[0]
+        return "Union[%s]" % ", ".join(str(item) for item in items)
 
     def __eq__(self, other):
         # type: (object) -> bool
@@ -113,25 +113,23 @@ class UnionType(AbstractType):
 
     def __hash__(self):
         # type: () -> int
-        return hash(('union', self.items))
+        return hash(("union", self.items))
 
 
 # Argument kind
-ARG_POS = 'ARG_POS'  # Normal
-ARG_STAR = 'ARG_STAR'  # *args
-ARG_STARSTAR = 'ARG_STARSTAR'  # **kwargs
+ARG_POS = "ARG_POS"  # Normal
+ARG_STAR = "ARG_STAR"  # *args
+ARG_STARSTAR = "ARG_STARSTAR"  # **kwargs
 
 # Description of an argument in a signature. The kind is one of ARG_*.
-Argument = NamedTuple('Argument', [('type', AbstractType), ('kind', str)])
+Argument = NamedTuple("Argument", [("type", AbstractType), ("kind", str)])
 
 
 def is_none(t):
     # type: (AbstractType) -> bool
-    return isinstance(t, ClassType) and t.name == 'None'
+    return isinstance(t, ClassType) and t.name == "None"
 
 
 def is_optional(t):
     # type: (AbstractType) -> bool
-    return (isinstance(t, UnionType)
-            and len(t.items) == 2
-            and any(item == ClassType('None') for item in t.items))
+    return isinstance(t, UnionType) and len(t.items) == 2 and any(item == ClassType("None") for item in t.items)

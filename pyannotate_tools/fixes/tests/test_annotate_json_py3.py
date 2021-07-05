@@ -14,15 +14,14 @@ from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
 
 
 class TestFixAnnotateJson(FixerTestCase):
-
     def setUp(self):
         super(TestFixAnnotateJson, self).setUp(
             fix_list=["annotate_json"],
             fixer_pkg="pyannotate_tools",
-            options={'annotation_style' : 'py3'},
+            options={"annotation_style": "py3"},
         )
         # See https://bugs.python.org/issue14243 for details
-        self.tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        self.tf = tempfile.NamedTemporaryFile(mode="w", delete=False)
         FixAnnotateJson.stub_json_file = self.tf.name
         FixAnnotateJson.stub_json = None
 
@@ -40,13 +39,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_basic(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ["Foo", "Bar"],
-                  "return_type": "Any"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {"arg_types": ["Foo", "Bar"], "return_type": "Any"},
+                }
+            ]
+        )
         a = """\
             class Foo: pass
             class Bar: pass
@@ -64,13 +65,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_keyword_only_argument(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ["Foo", "Bar"],
-                  "return_type": "Any"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {"arg_types": ["Foo", "Bar"], "return_type": "Any"},
+                }
+            ]
+        )
         a = """\
             class Foo: pass
             class Bar: pass
@@ -88,14 +91,16 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_add_typing_import(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              # Check with and without 'typing.' prefix
-              "signature": {
-                  "arg_types": ["List[typing.AnyStr]", "Callable[[], int]"],
-                  "return_type": "object"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    # Check with and without 'typing.' prefix
+                    "signature": {"arg_types": ["List[typing.AnyStr]", "Callable[[], int]"], "return_type": "object"},
+                }
+            ]
+        )
         a = """\
             def nop(foo, bar):
                 return 42
@@ -111,13 +116,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_add_other_import(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "mod1.py",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["mod1.MyClass", "mod2.OtherClass"],
-                  "return_type": "mod3.AnotherClass"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "mod1.py",
+                    "line": 1,
+                    "signature": {"arg_types": ["mod1.MyClass", "mod2.OtherClass"], "return_type": "mod3.AnotherClass"},
+                }
+            ]
+        )
         a = """\
             def nop(foo, bar):
                 return AnotherClass()
@@ -134,13 +141,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_add_kwds(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int"],
-                  "return_type": "object"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["int"], "return_type": "object"},
+                }
+            ]
+        )
         a = """\
             def nop(foo, **kwds):
                 return 42
@@ -154,13 +163,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_dont_add_kwds(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int", "**AnyStr"],
-                  "return_type": "object"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["int", "**AnyStr"], "return_type": "object"},
+                }
+            ]
+        )
         a = """\
             def nop(foo, **kwds):
                 return 42
@@ -174,13 +185,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_add_varargs(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int"],
-                  "return_type": "object"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["int"], "return_type": "object"},
+                }
+            ]
+        )
         a = """\
             def nop(foo, *args):
                 return 42
@@ -194,13 +207,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_dont_add_varargs(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int", "*int"],
-                  "return_type": "object"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["int", "*int"], "return_type": "object"},
+                }
+            ]
+        )
         a = """\
             def nop(foo, *args):
                 return 42
@@ -213,13 +228,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_return_expr_not_none(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "None"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "None"},
+                }
+            ]
+        )
         a = """\
             def nop():
                 return 0
@@ -234,13 +251,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_return_expr_none(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "None"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "None"},
+                }
+            ]
+        )
         a = """\
             def nop():
                 return
@@ -253,13 +272,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_generator_optional(self):
         self.setTestData(
-            [{"func_name": "gen",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "Optional[int]"},
-              }])
+            [
+                {
+                    "func_name": "gen",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "Optional[int]"},
+                }
+            ]
+        )
         a = """\
             def gen():
                 yield 42
@@ -273,13 +294,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_generator_plain(self):
         self.setTestData(
-            [{"func_name": "gen",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "gen",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def gen():
                 yield 42
@@ -293,13 +316,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_not_generator(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop():
                 def gen():
@@ -314,13 +339,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_add_self(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop(self):
                 pass
@@ -334,13 +361,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_dont_add_self(self):
         self.setTestData(
-            [{"func_name": "C.nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "C.nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             class C:
                 def nop(self):
@@ -355,13 +384,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_too_many_types(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["int"], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop():
                 pass
@@ -370,13 +401,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_too_few_types(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": [], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop(a):
                 pass
@@ -385,13 +418,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_line_number_drift(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 10,
-              "signature": {
-                  "arg_types": [],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 10,
+                    "signature": {"arg_types": [], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop(a):
                 pass
@@ -401,13 +436,15 @@ class TestFixAnnotateJson(FixerTestCase):
     def test_classmethod(self):
         # Class method names currently are returned without class name
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ["int"],
-                  "return_type": "int"}
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {"arg_types": ["int"], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             class C:
                 @classmethod
@@ -425,13 +462,15 @@ class TestFixAnnotateJson(FixerTestCase):
     def test_staticmethod(self):
         # Static method names currently are returned without class name
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ["int"],
-                  "return_type": "int"}
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {"arg_types": ["int"], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             class C:
                 @staticmethod
@@ -449,15 +488,28 @@ class TestFixAnnotateJson(FixerTestCase):
     def test_long_form(self):
         self.maxDiff = None
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int", "int", "int",
-                                "str", "str", "str",
-                                "Optional[bool]", "Union[int, str]", "*Any"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {
+                        "arg_types": [
+                            "int",
+                            "int",
+                            "int",
+                            "str",
+                            "str",
+                            "str",
+                            "Optional[bool]",
+                            "Union[int, str]",
+                            "*Any",
+                        ],
+                        "return_type": "int",
+                    },
+                }
+            ]
+        )
         a = """\
             def nop(a, b, c,  # some comment
                     d, e, f,  # multi-line
@@ -480,15 +532,28 @@ class TestFixAnnotateJson(FixerTestCase):
     def test_long_form_method(self):
         self.maxDiff = None
         self.setTestData(
-            [{"func_name": "C.nop",
-              "path": "<string>",
-              "line": 2,
-              "signature": {
-                  "arg_types": ["int", "int", "int",
-                                "str", "str", "str",
-                                "Optional[bool]", "Union[int, str]", "*Any"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "C.nop",
+                    "path": "<string>",
+                    "line": 2,
+                    "signature": {
+                        "arg_types": [
+                            "int",
+                            "int",
+                            "int",
+                            "str",
+                            "str",
+                            "str",
+                            "Optional[bool]",
+                            "Union[int, str]",
+                            "*Any",
+                        ],
+                        "return_type": "int",
+                    },
+                }
+            ]
+        )
         a = """\
             class C:
                 def nop(self, a, b, c,  # some comment
@@ -513,15 +578,28 @@ class TestFixAnnotateJson(FixerTestCase):
     def test_long_form_classmethod(self):
         self.maxDiff = None
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ["int", "int", "int",
-                                "str", "str", "str",
-                                "Optional[bool]", "Union[int, str]", "*Any"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {
+                        "arg_types": [
+                            "int",
+                            "int",
+                            "int",
+                            "str",
+                            "str",
+                            "str",
+                            "Optional[bool]",
+                            "Union[int, str]",
+                            "*Any",
+                        ],
+                        "return_type": "int",
+                    },
+                }
+            ]
+        )
         a = """\
             class C:
                 @classmethod
@@ -543,22 +621,25 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
         # Do the same test for staticmethod
-        a = a.replace('classmethod', 'staticmethod')
-        b = b.replace('classmethod', 'staticmethod')
+        a = a.replace("classmethod", "staticmethod")
+        b = b.replace("classmethod", "staticmethod")
         self.check(a, b)
 
     def test_long_form_trailing_comma(self):
         self.maxDiff = None
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ["int", "int", "int",
-                                "str", "str", "str",
-                                "Optional[bool]", "Union[int, str]"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {
+                        "arg_types": ["int", "int", "int", "str", "str", "str", "Optional[bool]", "Union[int, str]"],
+                        "return_type": "int",
+                    },
+                }
+            ]
+        )
         a = """\
             def nop(a, b, c,  # some comment
                     d, e, f,
@@ -577,13 +658,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_one_liner(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["int"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["int"], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop(a):   return a
             """
@@ -594,13 +677,15 @@ class TestFixAnnotateJson(FixerTestCase):
 
     def test_variadic(self):
         self.setTestData(
-            [{"func_name": "nop",
-              "path": "<string>",
-              "line": 1,
-              "signature": {
-                  "arg_types": ["Tuple[int, ...]"],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "nop",
+                    "path": "<string>",
+                    "line": 1,
+                    "signature": {"arg_types": ["Tuple[int, ...]"], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             def nop(a):   return 0
             """
@@ -610,16 +695,18 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
 
-    @unittest.skipIf(sys.version_info < (3, 5), 'async not supported on old python')
+    @unittest.skipIf(sys.version_info < (3, 5), "async not supported on old python")
     def test_nested_class_async_func(self):
         self.setTestData(
-            [{"func_name": "A.B.foo",
-              "path": "<string>",
-              "line": 3,
-              "signature": {
-                  "arg_types": ['str'],
-                  "return_type": "int"},
-              }])
+            [
+                {
+                    "func_name": "A.B.foo",
+                    "path": "<string>",
+                    "line": 3,
+                    "signature": {"arg_types": ["str"], "return_type": "int"},
+                }
+            ]
+        )
         a = """\
             class A:
                 class B:
@@ -634,7 +721,7 @@ class TestFixAnnotateJson(FixerTestCase):
             """
         self.check(a, b)
 
-    @patch('pyannotate_tools.fixes.fix_annotate_json.FixAnnotateJson.set_filename')
+    @patch("pyannotate_tools.fixes.fix_annotate_json.FixAnnotateJson.set_filename")
     def test_set_filename(self, mocked_set_filename):
         self.filename = "/path/to/fileA.py"
         self.unchanged("")
