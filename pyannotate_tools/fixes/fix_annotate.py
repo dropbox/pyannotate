@@ -34,9 +34,8 @@ from __future__ import print_function
 
 import os
 import re
-
 from lib2to3.fixer_base import BaseFix
-from lib2to3.fixer_util import syms, touch_import, find_indentation
+from lib2to3.fixer_util import find_indentation, syms, touch_import
 from lib2to3.patcomp import compile_pattern
 from lib2to3.pgen2 import token
 from lib2to3.pytree import Leaf, Node

@@ -17,42 +17,25 @@ You can repeat start() / stop() as many times as you want.
 The module is based on Tony's 2016 prototype D219371.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-)
+from __future__ import absolute_import, division, print_function
 
 import collections
 import inspect
 import json
-import opcode
 import os
 import sys
 import threading
+from contextlib import contextmanager
 from inspect import ArgInfo
 from threading import Thread
+from typing import (Any, Callable, Dict, Iterable, Iterator, List, NamedTuple, Optional, Set, Sized, Tuple, TypeVar,
+                    Union)
 
+import opcode
 from mypy_extensions import TypedDict
 from six import iteritems
 from six.moves import range
 from six.moves.queue import Queue  # type: ignore  # No library stub yet
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    NamedTuple,
-    Optional,
-    Set,
-    Sized,
-    Tuple,
-    TypeVar,
-    Union,
-)
-from contextlib import contextmanager
 
 MYPY=False
 if MYPY:

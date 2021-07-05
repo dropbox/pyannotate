@@ -3,12 +3,12 @@
 
 import json
 import os
+import sys
 import tempfile
 import unittest
-import sys
-from mock import patch
-
 from lib2to3.tests.test_fixers import FixerTestCase
+
+from mock import patch
 
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson
 

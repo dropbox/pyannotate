@@ -1,8 +1,8 @@
 # flake8: noqa
 # Our flake extension misfires on type comments in strings below.
 
-from lib2to3.tests.test_fixers import FixerTestCase
 import unittest
+from lib2to3.tests.test_fixers import FixerTestCase
 
 # deadcode: fix_annotate is used as part of the fixer_pkg for this test
 from pyannotate_tools.fixes import fix_annotate

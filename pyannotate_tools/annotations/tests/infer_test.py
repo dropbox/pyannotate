@@ -1,23 +1,9 @@
 import unittest
-
 from typing import List, Tuple
 
-from pyannotate_tools.annotations.infer import (
-    flatten_types,
-    infer_annotation,
-    merge_items,
-    remove_redundant_items,
-)
-from pyannotate_tools.annotations.types import (
-    AbstractType,
-    AnyType,
-    ARG_POS,
-    ARG_STAR,
-    ClassType,
-    TupleType,
-    UnionType,
-    NoReturnType,
-)
+from pyannotate_tools.annotations.infer import flatten_types, infer_annotation, merge_items, remove_redundant_items
+from pyannotate_tools.annotations.types import (ARG_POS, ARG_STAR, AbstractType, AnyType, ClassType, NoReturnType,
+                                                TupleType, UnionType)
 
 
 class TestInfer(unittest.TestCase):

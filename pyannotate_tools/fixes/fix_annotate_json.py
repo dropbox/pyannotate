@@ -22,12 +22,12 @@ import json  # noqa
 import os
 import re
 from contextlib import contextmanager
-
 from lib2to3.fixer_util import syms, touch_import
 from lib2to3.pgen2 import token
 from lib2to3.pytree import Base, Leaf, Node
-from typing import __all__ as typing_all  # type: ignore
 from typing import Any, Dict, List, Optional, Tuple
+from typing import __all__ as typing_all  # type: ignore
+
 try:
     from typing import Text
 except ImportError:

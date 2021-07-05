@@ -1,9 +1,5 @@
 """Tests for collect_types"""
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-)
+from __future__ import absolute_import, division, print_function
 
 import contextlib
 import json
@@ -14,17 +10,10 @@ import time
 import unittest
 from collections import namedtuple
 from threading import Thread
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 from six import PY2
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
+
 try:
     from typing import Text
 except ImportError:

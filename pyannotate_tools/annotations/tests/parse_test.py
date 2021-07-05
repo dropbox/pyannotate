@@ -1,22 +1,11 @@
 import os
 import tempfile
 import unittest
-
 from typing import List, Optional, Tuple
 
-from pyannotate_tools.annotations.parse import parse_json, parse_type_comment, ParseError, tokenize
-from pyannotate_tools.annotations.types import (
-    AbstractType,
-    AnyType,
-    ARG_POS,
-    ARG_STAR,
-    ARG_STARSTAR,
-    Argument,
-    ClassType,
-    TupleType,
-    UnionType,
-    NoReturnType,
-)
+from pyannotate_tools.annotations.parse import ParseError, parse_json, parse_type_comment, tokenize
+from pyannotate_tools.annotations.types import (ARG_POS, ARG_STAR, ARG_STARSTAR, AbstractType, AnyType, Argument,
+                                                ClassType, NoReturnType, TupleType, UnionType)
 
 
 class TestParseError(unittest.TestCase):

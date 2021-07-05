@@ -1,12 +1,11 @@
 """Some things you just can't test as unit tests"""
 
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
-import shutil
-
 
 example = """
 def main():

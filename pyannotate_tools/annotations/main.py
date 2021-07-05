@@ -1,14 +1,13 @@
 """Main entry point to mypy annotation inference utility."""
 
 import json
-
 from typing import List
+
 from mypy_extensions import TypedDict
 
-from pyannotate_tools.annotations.types import ARG_STAR, ARG_STARSTAR
 from pyannotate_tools.annotations.infer import infer_annotation
 from pyannotate_tools.annotations.parse import parse_json
-
+from pyannotate_tools.annotations.types import ARG_STAR, ARG_STARSTAR
 
 # Schema of a function signature in the output
 Signature = TypedDict('Signature', {'arg_types': List[str],

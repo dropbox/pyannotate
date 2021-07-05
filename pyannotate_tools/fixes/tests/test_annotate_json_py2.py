@@ -4,7 +4,6 @@
 import json
 import os
 import tempfile
-
 from lib2to3.tests.test_fixers import FixerTestCase
 
 from pyannotate_tools.fixes.fix_annotate_json import FixAnnotateJson

@@ -3,12 +3,10 @@ import os
 import tempfile
 import textwrap
 import unittest
-
 from typing import Iterator
 
 from pyannotate_tools.annotations.infer import InferError
-from pyannotate_tools.annotations.main import (generate_annotations_json,
-                                               generate_annotations_json_string)
+from pyannotate_tools.annotations.main import generate_annotations_json, generate_annotations_json_string
 
 
 class TestMain(unittest.TestCase):

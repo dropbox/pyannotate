@@ -8,8 +8,8 @@ The collect_types tool is in pyannotate_runtime/collect_types.py.
 import json
 import re
 import sys
-
 from typing import Any, List, Mapping, Set, Tuple
+
 try:
     from typing import Text
 except ImportError:
@@ -17,18 +17,8 @@ except ImportError:
     Text = str  # type: ignore
 from mypy_extensions import NoReturn, TypedDict
 
-from pyannotate_tools.annotations.types import (
-    AbstractType,
-    AnyType,
-    ARG_POS,
-    ARG_STAR,
-    ARG_STARSTAR,
-    Argument,
-    ClassType,
-    TupleType,
-    UnionType,
-    NoReturnType,
-)
+from pyannotate_tools.annotations.types import (ARG_POS, ARG_STAR, ARG_STARSTAR, AbstractType, AnyType, Argument,
+                                                ClassType, NoReturnType, TupleType, UnionType)
 
 PY2 = sys.version_info < (3,)
 
