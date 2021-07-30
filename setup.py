@@ -37,7 +37,7 @@ setup(name='pyannotate',
           'Topic :: Software Development',
           ],
       install_requires = ['six',
-                          'mypy_extensions',
-                          'typing >= 3.5.3; python_version < "3.5"'
+                          'typing >= 3.5.3; python_version < "3.5"',
+                          'typing_extensions >= 3.7.4'
                           ],
       )

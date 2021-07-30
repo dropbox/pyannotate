@@ -53,11 +53,11 @@ class AnyType(AbstractType):
 
 
 class NoReturnType(AbstractType):
-    """The type mypy_extensions.NoReturn"""
+    """The type typing_extensions.NoReturn"""
 
     def __repr__(self):
         # type: () -> str
-        return 'mypy_extensions.NoReturn'
+        return 'typing_extensions.NoReturn'
 
     def __eq__(self, other):
         # type: (object) -> bool

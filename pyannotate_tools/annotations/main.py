@@ -3,7 +3,7 @@
 import json
 
 from typing import List
-from mypy_extensions import TypedDict
+from typing_extensions import TypedDict
 
 from pyannotate_tools.annotations.types import ARG_STAR, ARG_STARSTAR
 from pyannotate_tools.annotations.infer import infer_annotation
