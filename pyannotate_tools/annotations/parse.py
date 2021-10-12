@@ -15,7 +15,7 @@ try:
 except ImportError:
     # In Python 3.5.1 stdlib, typing.py does not define Text
     Text = str  # type: ignore
-from mypy_extensions import NoReturn, TypedDict
+from typing_extensions import NoReturn, TypedDict
 
 from pyannotate_tools.annotations.types import (
     AbstractType,
@@ -42,7 +42,7 @@ TYPE_FIXUPS = {
     'dictionary-valueiterator': 'Iterator',
     'dictionary-itemiterator': 'Iterator',
     'pyannotate_runtime.collect_types.UnknownType': 'Any',
-    'pyannotate_runtime.collect_types.NoReturnType': 'mypy_extensions.NoReturn',
+    'pyannotate_runtime.collect_types.NoReturnType': 'typing_extensions.NoReturn',
     'function': 'Callable',
     'functools.partial': 'Callable',
     'long': 'int',
@@ -284,7 +284,7 @@ class Parser(object):
             self.fail()
         if t.text == 'Any':
             return AnyType()
-        elif t.text == 'mypy_extensions.NoReturn':
+        elif t.text == 'typing_extensions.NoReturn':
             return NoReturnType()
         elif t.text == 'Tuple':
             self.expect('[')
