@@ -229,7 +229,7 @@ class TestBaseClass(unittest.TestCase):
                 print('    ' + comment)
             assert set(item['type_comments']) == set(comments)
         assert len(item['type_comments']) == len(comments)
-        assert os.path.join(collect_types.TOP_DIR, item['path']) == __file__
+        assert os.path.join(os.getcwd(), item['path']) == __file__
 
 
 class TestCollectTypes(TestBaseClass):
