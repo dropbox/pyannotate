@@ -8,12 +8,11 @@ from pyannotate_tools.fixes import fix_annotate
 
 
 class TestFixAnnotate(FixerTestCase):
-
     def setUp(self):
         super(TestFixAnnotate, self).setUp(
             fix_list=["annotate"],
             fixer_pkg="pyannotate_tools",
-            options={'annotation_style' : 'py2'},
+            options={"annotation_style": "py2"},
         )
 
     def test_no_arg(self):

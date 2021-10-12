@@ -17,26 +17,16 @@ You can repeat start() / stop() as many times as you want.
 The module is based on Tony's 2016 prototype D219371.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-)
+from __future__ import absolute_import, division, print_function
 
-import collections
 import inspect
 import json
-import opcode
 import os
 import sys
 import threading
+from contextlib import contextmanager
 from inspect import ArgInfo
 from threading import Thread
-
-from mypy_extensions import TypedDict
-from six import iteritems
-from six.moves import range
-from six.moves.queue import Queue  # type: ignore  # No library stub yet
 from typing import (
     Any,
     Callable,
@@ -52,9 +42,14 @@ from typing import (
     TypeVar,
     Union,
 )
-from contextlib import contextmanager
 
-MYPY=False
+import opcode
+from mypy_extensions import TypedDict
+from six import iteritems
+from six.moves import range
+from six.moves.queue import Queue  # type: ignore  # No library stub yet
+
+MYPY = False
 if MYPY:
     # MYPY is True when mypy is running
     # 'Type' is only required for running mypy, not for running pyannotate
@@ -76,11 +71,9 @@ def _my_hash(arg_list):
 
 
 # JSON object representing the collected data for a single function/method
-FunctionData = TypedDict('FunctionData', {'path': str,
-                                          'line': int,
-                                          'func_name': str,
-                                          'type_comments': List[str],
-                                          'samples': int})
+FunctionData = TypedDict(
+    "FunctionData", {"path": str, "line": int, "func_name": str, "type_comments": List[str], "samples": int}
+)
 
 
 class UnknownType(object):
@@ -118,7 +111,7 @@ class FakeIterator(Iterable[Any], Sized):
 
 
 _NONE_TYPE = type(None)  # type: Type[None]
-InternalType = Union['DictType', 'ListType', 'TupleType', 'SetType', 'IteratorType', 'type']
+InternalType = Union["DictType", "ListType", "TupleType", "SetType", "IteratorType", "type"]
 
 
 class DictType(object):
@@ -133,11 +126,11 @@ class DictType(object):
 
     def __repr__(self):
         # type: () -> str
-        if repr(self.key_type) == 'None':
+        if repr(self.key_type) == "None":
             # We didn't see any values, so we don't know what's inside
-            return 'Dict'
+            return "Dict"
         else:
-            return 'Dict[%s, %s]' % (repr(self.key_type), repr(self.val_type))
+            return "Dict[%s, %s]" % (repr(self.key_type), repr(self.val_type))
 
     def __hash__(self):
         # type: () -> int
@@ -166,11 +159,11 @@ class ListType(object):
 
     def __repr__(self):
         # type: () -> str
-        if repr(self.val_type) == 'None':
+        if repr(self.val_type) == "None":
             # We didn't see any values, so we don't know what's inside
-            return 'List'
+            return "List"
         else:
-            return 'List[%s]' % (repr(self.val_type))
+            return "List[%s]" % (repr(self.val_type))
 
     def __hash__(self):
         # type: () -> int
@@ -199,11 +192,11 @@ class SetType(object):
 
     def __repr__(self):
         # type: () -> str
-        if repr(self.val_type) == 'None':
+        if repr(self.val_type) == "None":
             # We didn't see any values, so we don't know what's inside
-            return 'Set'
+            return "Set"
         else:
-            return 'Set[%s]' % (repr(self.val_type))
+            return "Set[%s]" % (repr(self.val_type))
 
     def __hash__(self):
         # type: () -> int
@@ -232,11 +225,11 @@ class IteratorType(object):
 
     def __repr__(self):
         # type: () -> str
-        if repr(self.val_type) == 'None':
+        if repr(self.val_type) == "None":
             # We didn't see any values, so we don't know what's inside
-            return 'Iterator'
+            return "Iterator"
         else:
-            return 'Iterator[%s]' % (repr(self.val_type))
+            return "Iterator[%s]" % (repr(self.val_type))
 
     def __hash__(self):
         # type: () -> int
@@ -265,7 +258,7 @@ class TupleType(object):
 
     def __repr__(self):
         # type: () -> str
-        return 'Tuple[%s]' % ', '.join([name_from_type(vt) for vt in self.val_types])
+        return "Tuple[%s]" % ", ".join([name_from_type(vt) for vt in self.val_types])
 
     def __hash__(self):
         # type: () -> int
@@ -379,39 +372,39 @@ class TentativeType(object):
     def __repr__(self):
         # type: () -> str
         if (len(self.types) + len(self.types_hashable) == 0) or (
-                len(self.types_hashable) == 1 and _NONE_TYPE in self.types_hashable):
-            return 'None'
+            len(self.types_hashable) == 1 and _NONE_TYPE in self.types_hashable
+        ):
+            return "None"
         else:
-            type_format = '%s'
+            type_format = "%s"
             filtered_types = self.types + [i for i in self.types_hashable if i != _NONE_TYPE]
             if _NONE_TYPE in self.types_hashable:
-                type_format = 'Optional[%s]'
+                type_format = "Optional[%s]"
             if len(filtered_types) == 1:
                 return type_format % name_from_type(filtered_types[0])
             else:
                 # use sorted() for predictable type order in the Union
-                return type_format % (
-                    'Union[' + ', '.join(sorted([name_from_type(s) for s in filtered_types])) + ']')
+                return type_format % ("Union[" + ", ".join(sorted([name_from_type(s) for s in filtered_types])) + "]")
 
 
-FunctionKey = NamedTuple('FunctionKey', [('path', str), ('line', int), ('func_name', str)])
+FunctionKey = NamedTuple("FunctionKey", [("path", str), ("line", int), ("func_name", str)])
 
 # Inferred types for a function call
-ResolvedTypes = NamedTuple('ResolvedTypes',
-                           [('pos_args', List[InternalType]),
-                            ('varargs', Optional[List[InternalType]])])
+ResolvedTypes = NamedTuple(
+    "ResolvedTypes", [("pos_args", List[InternalType]), ("varargs", Optional[List[InternalType]])]
+)
 
 # Task queue entry for calling a function with specific argument types
-KeyAndTypes = NamedTuple('KeyAndTypes', [('key', FunctionKey), ('types', ResolvedTypes)])
+KeyAndTypes = NamedTuple("KeyAndTypes", [("key", FunctionKey), ("types", ResolvedTypes)])
 
 # Task queue entry for returning from a function with a value
-KeyAndReturn = NamedTuple('KeyAndReturn', [('key', FunctionKey), ('return_type', InternalType)])
+KeyAndReturn = NamedTuple("KeyAndReturn", [("key", FunctionKey), ("return_type", InternalType)])
 
 # Combined argument and return types for a single function call
-Signature = NamedTuple('Signature', [('args', 'ArgTypes'), ('return_type', InternalType)])
+Signature = NamedTuple("Signature", [("args", "ArgTypes"), ("return_type", InternalType)])
 
 
-BUILTIN_MODULES = {'__builtin__', 'builtins', 'exceptions'}
+BUILTIN_MODULES = {"__builtin__", "builtins", "exceptions"}
 
 
 def name_from_type(type_):
@@ -422,19 +415,19 @@ def name_from_type(type_):
     if isinstance(type_, (DictType, ListType, TupleType, SetType, IteratorType)):
         return repr(type_)
     else:
-        if type_.__name__ != 'NoneType':
+        if type_.__name__ != "NoneType":
             module = type_.__module__
-            if module in BUILTIN_MODULES or module == '<unknown>':
+            if module in BUILTIN_MODULES or module == "<unknown>":
                 # Omit module prefix for known built-ins, for convenience. This
                 # makes unit tests for this module simpler.
                 # Also ignore '<unknown>' modules so pyannotate can parse these types
                 return type_.__name__
             else:
-                name = getattr(type_, '__qualname__', None) or type_.__name__
-                delim = '.' if '.' not in name else ':'
-                return '%s%s%s' % (module, delim, name)
+                name = getattr(type_, "__qualname__", None) or type_.__name__
+                delim = "." if "." not in name else ":"
+                return "%s%s%s" % (module, delim, name)
         else:
-            return 'None'
+            return "None"
 
 
 EMPTY_DICT_TYPE = DictType(TentativeType(), TentativeType())
@@ -462,7 +455,7 @@ def get_function_name_from_frame(frame):
         for base in bases:
             if base not in mro:
                 mro.append(base)
-            sub_bases = getattr(base, '__bases__', None)
+            sub_bases = getattr(base, "__bases__", None)
             if sub_bases:
                 sub_bases = [sb for sb in sub_bases if sb not in mro and sb not in bases]
                 if sub_bases:
@@ -474,7 +467,7 @@ def get_function_name_from_frame(frame):
     funcname = code.co_name
     if code.co_varnames:
         varname = code.co_varnames[0]
-        if varname == 'self':
+        if varname == "self":
             inst = frame.f_locals.get(varname)
             if inst is not None:
                 try:
@@ -490,8 +483,8 @@ def get_function_name_from_frame(frame):
                 if mro:
                     for cls in mro:
                         bare_method = cls.__dict__.get(funcname)
-                        if bare_method and getattr(bare_method, '__code__', None) is code:
-                            return '%s.%s' % (cls.__name__, funcname)
+                        if bare_method and getattr(bare_method, "__code__", None) is code:
+                            return "%s.%s" % (cls.__name__, funcname)
     return funcname
 
 
@@ -506,7 +499,7 @@ def resolve_type(arg):
     arg_type = type(arg)
     if arg_type == list:
         assert isinstance(arg, list)  # this line helps mypy figure out types
-        sample = arg[:min(4, len(arg))]
+        sample = arg[: min(4, len(arg))]
         tentative_type = TentativeType()
         for sample_item in sample:
             tentative_type.add(resolve_type(sample_item))
@@ -533,7 +526,7 @@ def resolve_type(arg):
         return IteratorType(tentative_type)
     elif arg_type == tuple:
         assert isinstance(arg, tuple)  # this line helps mypy figure out types
-        sample = list(arg[:min(10, len(arg))])
+        sample = list(arg[: min(10, len(arg))])
         return TupleType([resolve_type(sample_item) for sample_item in sample])
     elif arg_type == dict:
         assert isinstance(arg, dict)  # this line helps mypy figure out types
@@ -556,10 +549,10 @@ def prep_args(arg_info):
     """
 
     # pull out any varargs declarations
-    filtered_args = [a for a in arg_info.args if getattr(arg_info, 'varargs', None) != a]
+    filtered_args = [a for a in arg_info.args if getattr(arg_info, "varargs", None) != a]
 
     # we don't care about self/cls first params (perhaps we can test if it's an instance/class method another way?)
-    if filtered_args and (filtered_args[0] in ('self', 'cls')):
+    if filtered_args and (filtered_args[0] in ("self", "cls")):
         filtered_args = filtered_args[1:]
 
     pos_args = []  # type: List[InternalType]
@@ -603,7 +596,7 @@ class ArgTypes(object):
 
     def __repr__(self):
         # type: () -> str
-        return str({'pos_args': self.pos_args, 'varargs': self.varargs})
+        return str({"pos_args": self.pos_args, "varargs": self.varargs})
 
     def __hash__(self):
         # type: () -> int
@@ -611,8 +604,7 @@ class ArgTypes(object):
 
     def __eq__(self, other):
         # type: (object) -> bool
-        return (isinstance(other, ArgTypes)
-                and other.pos_args == self.pos_args and other.varargs == self.varargs)
+        return isinstance(other, ArgTypes) and other.pos_args == self.pos_args and other.varargs == self.varargs
 
     def __ne__(self, other):
         # type: (object) -> bool
@@ -640,17 +632,17 @@ def _make_type_comment(args_info, return_type):
     # type: (ArgTypes, InternalType) -> str
     """Generate a type comment of form '(arg, ...) -> ret'."""
     if not args_info.pos_args:
-        args_string = ''
+        args_string = ""
     else:
-        args_string = ', '.join([repr(t) for t in args_info.pos_args])
+        args_string = ", ".join([repr(t) for t in args_info.pos_args])
     if args_info.varargs:
-        varargs = '*%s' % repr(args_info.varargs)
+        varargs = "*%s" % repr(args_info.varargs)
         if args_string:
-            args_string += ', %s' % varargs
+            args_string += ", %s" % varargs
         else:
             args_string = varargs
     return_name = name_from_type(return_type)
-    return '(%s) -> %s' % (args_string, return_name)
+    return "(%s) -> %s" % (args_string, return_name)
 
 
 def _flush_signature(key, return_type):
@@ -703,8 +695,8 @@ _consumer_thread.start()
 
 running = False
 
-TOP_DIR = os.path.join(os.getcwd(), '')     # current dir with trailing slash
-TOP_DIR_DOT = os.path.join(TOP_DIR, '.')
+TOP_DIR = os.path.join(os.getcwd(), "")  # current dir with trailing slash
+TOP_DIR_DOT = os.path.join(TOP_DIR, ".")
 TOP_DIR_LEN = len(TOP_DIR)
 
 
@@ -756,6 +748,7 @@ def pause():
     # In the future, do: warnings.warn("Function pause() has been replaced by start().", PendingDeprecationWarning)
     return stop()
 
+
 def stop():
     # type: () -> None
     """
@@ -773,6 +766,7 @@ def resume():
     """
     # In the future, do: warnings.warn("Function resume() has been replaced by stop().", PendingDeprecationWarning)
     return start()
+
 
 def start():
     # type: () -> None
@@ -811,11 +805,11 @@ _filter_filename = default_filter_filename  # type: Callable[[Optional[str]], Op
 
 
 if sys.version_info[0] == 2:
-    RETURN_VALUE_OPCODE = chr(opcode.opmap['RETURN_VALUE'])
-    YIELD_VALUE_OPCODE = chr(opcode.opmap['YIELD_VALUE'])
+    RETURN_VALUE_OPCODE = chr(opcode.opmap["RETURN_VALUE"])
+    YIELD_VALUE_OPCODE = chr(opcode.opmap["YIELD_VALUE"])
 else:
-    RETURN_VALUE_OPCODE = opcode.opmap['RETURN_VALUE']
-    YIELD_VALUE_OPCODE = opcode.opmap['YIELD_VALUE']
+    RETURN_VALUE_OPCODE = opcode.opmap["RETURN_VALUE"]
+    YIELD_VALUE_OPCODE = opcode.opmap["YIELD_VALUE"]
 
 
 def _trace_dispatch(frame, event, arg):
@@ -838,7 +832,7 @@ def _trace_dispatch(frame, event, arg):
     if n is None:
         return
 
-    if event == 'call':
+    if event == "call":
         # Bump counter and bail depending on sampling sequence.
         sampling_counters[key] = n + 1
         # Each function gets traced at most MAX_SAMPLES_PER_FUNC times per run.
@@ -851,7 +845,7 @@ def _trace_dispatch(frame, event, arg):
             return
         # Mark that we are looking for a return from this code object.
         call_pending.add(key)
-    elif event == 'return':
+    elif event == "return":
         if key not in call_pending:
             # No pending call event -- ignore this event. We only collect
             # return events when we know the corresponding call event.
@@ -865,17 +859,17 @@ def _trace_dispatch(frame, event, arg):
     filename = _filter_filename(code.co_filename)
     if filename:
         func_name = get_function_name_from_frame(frame)
-        if not func_name or func_name[0] == '<':
+        if not func_name or func_name[0] == "<":
             # Could be a lambda or a comprehension; we're not interested.
             sampling_counters[key] = None
         else:
             function_key = FunctionKey(filename, code.co_firstlineno, func_name)
-            if event == 'call':
+            if event == "call":
                 # TODO(guido): Make this faster
                 arg_info = inspect.getargvalues(frame)  # type: ArgInfo
                 resolved_types = prep_args(arg_info)
                 _task_queue.put(KeyAndTypes(function_key, resolved_types))
-            elif event == 'return':
+            elif event == "return":
                 # This event is also triggered if a function yields or raises an exception.
                 # We can tell the difference by looking at the bytecode.
                 # (We don't get here for C functions so the bytecode always exists.)
@@ -903,7 +897,7 @@ def _trace_dispatch(frame, event, arg):
         sampling_counters[key] = None  # We're not interested in this function.
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _filter_types(types_dict):
@@ -913,7 +907,7 @@ def _filter_types(types_dict):
     def exclude(k):
         # type: (FunctionKey) -> bool
         """Exclude filter"""
-        return k.path.startswith('<') or k.func_name == '<module>'
+        return k.path.startswith("<") or k.func_name == "<module>"
 
     return {k: v for k, v in iteritems(types_dict) if not exclude(k)}
 
@@ -922,18 +916,17 @@ def _dump_impl():
     # type: () -> List[FunctionData]
     """Internal implementation for dump_stats and dumps_stats"""
     filtered_signatures = _filter_types(collected_signatures)
-    sorted_by_file = sorted(iteritems(filtered_signatures),
-                            key=(lambda p: (p[0].path, p[0].line, p[0].func_name)))
+    sorted_by_file = sorted(iteritems(filtered_signatures), key=(lambda p: (p[0].path, p[0].line, p[0].func_name)))
     res = []  # type: List[FunctionData]
     for function_key, signatures in sorted_by_file:
         comments = [_make_type_comment(args, ret_type) for args, ret_type in signatures]
         res.append(
             {
-                'path': function_key.path,
-                'line': function_key.line,
-                'func_name': function_key.func_name,
-                'type_comments': comments,
-                'samples': num_samples.get(function_key, 0),
+                "path": function_key.path,
+                "line": function_key.line,
+                "func_name": function_key.func_name,
+                "type_comments": comments,
+                "samples": num_samples.get(function_key, 0),
             }
         )
     return res
@@ -948,7 +941,7 @@ def dump_stats(filename):
         filename: absolute filename
     """
     res = _dump_impl()
-    f = open(filename, 'w')
+    f = open(filename, "w")
     json.dump(res, f, indent=4)
     f.close()
 

@@ -7,23 +7,24 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from pyannotate_tools.annotations.parse import parse_type_comment
 from pyannotate_tools.annotations.types import (
+    ARG_POS,
     AbstractType,
     AnyType,
-    ARG_POS,
     Argument,
     ClassType,
-    is_optional,
+    NoReturnType,
     TupleType,
     UnionType,
-    NoReturnType,
+    is_optional,
 )
 
 IGNORED_ITEMS = {
-    'unittest.mock.Mock',
-    'unittest.mock.MagicMock',
-    'mock.mock.Mock',
-    'mock.mock.MagicMock',
+    "unittest.mock.Mock",
+    "unittest.mock.MagicMock",
+    "mock.mock.Mock",
+    "mock.mock.MagicMock",
 }
+
 
 class InferError(Exception):
     """Raised if we can't infer a signature for some reason."""
@@ -51,13 +52,13 @@ def infer_annotation(type_comments):
         arg_infos = list(args[i])
         kind = argument_kind(arg_infos)
         if kind is None:
-            raise InferError('Ambiguous argument kinds:\n' + '\n'.join(type_comments))
+            raise InferError("Ambiguous argument kinds:\n" + "\n".join(type_comments))
         types = [arg.type for arg in arg_infos]
         combined = combine_types(types)
-        if str(combined) == 'None':
+        if str(combined) == "None":
             # It's very rare for an argument to actually be typed `None`, more likely than
             # not we simply don't have any data points for this argument.
-            combined = UnionType([ClassType('None'), AnyType()])
+            combined = UnionType([ClassType("None"), AnyType()])
         if kind != ARG_POS and (len(str(combined)) > 120 or isinstance(combined, UnionType)):
             # Avoid some noise.
             combined = AnyType()
@@ -117,11 +118,16 @@ def simplify_recursive(typ):
     elif isinstance(typ, ClassType):
         simplified = ClassType(typ.name, [simplify_recursive(arg) for arg in typ.args])
         args = simplified.args
-        if (simplified.name == 'Dict' and len(args) == 2
-                and isinstance(args[0], ClassType) and args[0].name in ('str', 'Text')
-                and isinstance(args[1], UnionType) and not is_optional(args[1])):
+        if (
+            simplified.name == "Dict"
+            and len(args) == 2
+            and isinstance(args[0], ClassType)
+            and args[0].name in ("str", "Text")
+            and isinstance(args[1], UnionType)
+            and not is_optional(args[1])
+        ):
             # Looks like a potential case for TypedDict, which we don't properly support yet.
-            return ClassType('Dict', [args[0], AnyType()])
+            return ClassType("Dict", [args[0], AnyType()])
         return simplified
     elif isinstance(typ, TupleType):
         return TupleType([simplify_recursive(item) for item in typ.items])
@@ -143,12 +149,12 @@ def dedupe_types(types):
     # type: (Iterable[AbstractType]) -> List[AbstractType]
     return sorted(set(types), key=lambda t: str(t))
 
+
 def filter_ignored_items(items):
-     # type: (List[AbstractType]) -> List[AbstractType]
-    result = [item for item in items
-              if not isinstance(item, ClassType) or
-              item.name not in IGNORED_ITEMS]
+    # type: (List[AbstractType]) -> List[AbstractType]
+    result = [item for item in items if not isinstance(item, ClassType) or item.name not in IGNORED_ITEMS]
     return result or [AnyType()]
+
 
 def remove_redundant_items(items):
     # type: (List[AbstractType]) -> List[AbstractType]
@@ -172,20 +178,20 @@ def is_redundant_union_item(first, other):
     If items are equal, return False.
     """
     if isinstance(first, ClassType) and isinstance(other, ClassType):
-        if first.name == 'str' and other.name == 'Text':
+        if first.name == "str" and other.name == "Text":
             return True
-        elif first.name == 'bool' and other.name == 'int':
+        elif first.name == "bool" and other.name == "int":
             return True
-        elif first.name == 'int' and other.name == 'float':
+        elif first.name == "int" and other.name == "float":
             return True
-        elif (first.name in ('List', 'Dict', 'Set') and
-                  other.name == first.name):
+        elif first.name in ("List", "Dict", "Set") and other.name == first.name:
             if not first.args and other.args:
                 return True
             elif len(first.args) == len(other.args) and first.args:
-                result = all(first_arg == other_arg or other_arg == AnyType()
-                             for first_arg, other_arg
-                             in zip(first.args, other.args))
+                result = all(
+                    first_arg == other_arg or other_arg == AnyType()
+                    for first_arg, other_arg in zip(first.args, other.args)
+                )
                 return result
 
     return False
@@ -222,13 +228,12 @@ def merged_type(t, s):
         all_items = t.items + s.items
         if all_items and all(item == all_items[0] for item in all_items[1:]):
             # Merge multiple compatible fixed-length tuples into a variable-length tuple type.
-            return ClassType('Tuple', [all_items[0]])
-    elif (isinstance(t, TupleType) and isinstance(s, ClassType) and s.name == 'Tuple'
-          and len(s.args) == 1):
+            return ClassType("Tuple", [all_items[0]])
+    elif isinstance(t, TupleType) and isinstance(s, ClassType) and s.name == "Tuple" and len(s.args) == 1:
         if all(item == s.args[0] for item in t.items):
             # Merge fixed-length tuple and variable-length tuple.
             return s
-    elif isinstance(s, TupleType) and isinstance(t, ClassType) and t.name == 'Tuple':
+    elif isinstance(s, TupleType) and isinstance(t, ClassType) and t.name == "Tuple":
         return merged_type(s, t)
     elif isinstance(s, NoReturnType):
         return t

@@ -8,8 +8,8 @@ The collect_types tool is in pyannotate_runtime/collect_types.py.
 import json
 import re
 import sys
-
 from typing import Any, List, Mapping, Set, Tuple
+
 try:
     from typing import Text
 except ImportError:
@@ -18,16 +18,16 @@ except ImportError:
 from mypy_extensions import NoReturn, TypedDict
 
 from pyannotate_tools.annotations.types import (
-    AbstractType,
-    AnyType,
     ARG_POS,
     ARG_STAR,
     ARG_STARSTAR,
+    AbstractType,
+    AnyType,
     Argument,
     ClassType,
+    NoReturnType,
     TupleType,
     UnionType,
-    NoReturnType,
 )
 
 PY2 = sys.version_info < (3,)
@@ -38,35 +38,33 @@ PY2 = sys.version_info < (3,)
 TYPE_FIXUPS = {
     # The dictionary-* names come from Python 2 `__class__.__name__` values
     # from `dict.iterkeys()`, etc. Python 3 uses valid names.
-    'dictionary-keyiterator': 'Iterator',
-    'dictionary-valueiterator': 'Iterator',
-    'dictionary-itemiterator': 'Iterator',
-    'pyannotate_runtime.collect_types.UnknownType': 'Any',
-    'pyannotate_runtime.collect_types.NoReturnType': 'mypy_extensions.NoReturn',
-    'function': 'Callable',
-    'functools.partial': 'Callable',
-    'long': 'int',
-    'unicode': 'Text',
-    'generator': 'Iterator',
-    'listiterator': 'Iterator',
-    'instancemethod': 'Callable',
-    'itertools.imap': 'Iterator',
-    'operator.methodcaller': 'Callable',
-    'method': 'Callable',
-    'method-wrapper': 'Callable',
-    'mappingproxy': 'Mapping',
-    'file': 'IO[bytes]',
-    'instance': 'Any',
-    'collections.defaultdict': 'Dict',
+    "dictionary-keyiterator": "Iterator",
+    "dictionary-valueiterator": "Iterator",
+    "dictionary-itemiterator": "Iterator",
+    "pyannotate_runtime.collect_types.UnknownType": "Any",
+    "pyannotate_runtime.collect_types.NoReturnType": "mypy_extensions.NoReturn",
+    "function": "Callable",
+    "functools.partial": "Callable",
+    "long": "int",
+    "unicode": "Text",
+    "generator": "Iterator",
+    "listiterator": "Iterator",
+    "instancemethod": "Callable",
+    "itertools.imap": "Iterator",
+    "operator.methodcaller": "Callable",
+    "method": "Callable",
+    "method-wrapper": "Callable",
+    "mappingproxy": "Mapping",
+    "file": "IO[bytes]",
+    "instance": "Any",
+    "collections.defaultdict": "Dict",
 }
 
 
 # Input JSON data entry
-RawEntry = TypedDict('RawEntry', {'path': Text,
-                                  'line': int,
-                                  'func_name': Text,
-                                  'type_comments': List[Text],
-                                  'samples': int})
+RawEntry = TypedDict(
+    "RawEntry", {"path": Text, "line": int, "func_name": Text, "type_comments": List[Text], "samples": int}
+)
 
 
 class FunctionInfo(object):
@@ -89,7 +87,7 @@ class ParseError(Exception):
 
     def __init__(self, comment):
         # type: (str) -> None
-        super(ParseError, self).__init__('Invalid type comment: %s' % comment)
+        super(ParseError, self).__init__("Invalid type comment: %s" % comment)
         self.comment = comment
 
 
@@ -105,37 +103,39 @@ def parse_json(path):
 
     def assert_type(value, typ):
         # type: (object, type) -> None
-        assert isinstance(value, typ), '%s: Unexpected type %r' % (path, type(value).__name__)
+        assert isinstance(value, typ), "%s: Unexpected type %r" % (path, type(value).__name__)
 
     def assert_dict_item(dictionary, key, typ):
         # type: (Mapping[Any, Any], str, type) -> None
-        assert key in dictionary, '%s: Missing dictionary key %r' % (path, key)
+        assert key in dictionary, "%s: Missing dictionary key %r" % (path, key)
         value = dictionary[key]
-        assert isinstance(value, typ), '%s: Unexpected type %r for key %r' % (
-            path, type(value).__name__, key)
+        assert isinstance(value, typ), "%s: Unexpected type %r for key %r" % (path, type(value).__name__, key)
 
     assert_type(data, list)
     for item in data:
         assert_type(item, dict)
-        assert_dict_item(item, 'path', Text)
-        assert_dict_item(item, 'line', int)
-        assert_dict_item(item, 'func_name', Text)
-        assert_dict_item(item, 'type_comments', list)
-        for comment in item['type_comments']:
+        assert_dict_item(item, "path", Text)
+        assert_dict_item(item, "line", int)
+        assert_dict_item(item, "func_name", Text)
+        assert_dict_item(item, "type_comments", list)
+        for comment in item["type_comments"]:
             assert_type(comment, Text)
-        assert_type(item['samples'], int)
-        info = FunctionInfo(encode(item['path']),
-                            item['line'],
-                            encode(item['func_name']),
-                            [encode(comment) for comment in item['type_comments']],
-                            item['samples'])
+        assert_type(item["samples"], int)
+        info = FunctionInfo(
+            encode(item["path"]),
+            item["line"],
+            encode(item["func_name"]),
+            [encode(comment) for comment in item["type_comments"]],
+            item["samples"],
+        )
         result.append(info)
     return result
 
 
 class Token(object):
     """Abstract base class for tokens used for parsing type comments"""
-    text = ''
+
+    text = ""
 
 
 class DottedName(Token):
@@ -147,7 +147,7 @@ class DottedName(Token):
 
     def __repr__(self):
         # type: () -> str
-        return 'DottedName(%s)' % self.text
+        return "DottedName(%s)" % self.text
 
 
 class Separator(Token):
@@ -167,7 +167,7 @@ class End(Token):
 
     def __repr__(self):
         # type: () -> str
-        return 'End()'
+        return "End()"
 
 
 def tokenize(s):
@@ -179,33 +179,33 @@ def tokenize(s):
         if not s:
             tokens.append(End())
             return tokens
-        elif s[0] == ' ':
+        elif s[0] == " ":
             s = s[1:]
-        elif s[0] in '()[],*':
+        elif s[0] in "()[],*":
             tokens.append(Separator(s[0]))
             s = s[1:]
-        elif s[:2] == '->':
-            tokens.append(Separator('->'))
+        elif s[:2] == "->":
+            tokens.append(Separator("->"))
             s = s[2:]
         else:
-            m = re.match(r'[-\w]+(\s*(\.|:)\s*[-/\w]*)*', s)
+            m = re.match(r"[-\w]+(\s*(\.|:)\s*[-/\w]*)*", s)
             if not m:
                 raise ParseError(original)
             fullname = m.group(0)
-            fullname = fullname.replace(' ', '')
+            fullname = fullname.replace(" ", "")
             if fullname in TYPE_FIXUPS:
                 fullname = TYPE_FIXUPS[fullname]
             # pytz creates classes with the name of the timezone being used:
             # https://github.com/stub42/pytz/blob/f55399cddbef67c56db1b83e0939ecc1e276cf42/src/pytz/tzfile.py#L120-L123
             # This causes pyannotates to crash as it's invalid to have a class
             # name with a `/` in it (e.g. "pytz.tzfile.America/Los_Angeles")
-            if fullname.startswith('pytz.tzfile.'):
-                fullname = 'datetime.tzinfo'
-            if '-' in fullname or '/' in fullname:
+            if fullname.startswith("pytz.tzfile."):
+                fullname = "datetime.tzinfo"
+            if "-" in fullname or "/" in fullname:
                 # Not a valid Python name; there are many places that
                 # generate these, so we just substitute Any rather
                 # than crashing.
-                fullname = 'Any'
+                fullname = "Any"
             tokens.append(DottedName(fullname))
             s = s[len(m.group(0)):]
 
@@ -227,16 +227,16 @@ class Parser(object):
 
     def parse(self):
         # type: () -> Tuple[List[Argument], AbstractType]
-        self.expect('(')
+        self.expect("(")
         arg_types = []  # type: List[Argument]
         stars_seen = set()  # type: Set[str]
-        while self.lookup() != ')':
-            if self.lookup() == '*':
-                self.expect('*')
-                if self.lookup() == '*':
-                    if '**' in stars_seen:
+        while self.lookup() != ")":
+            if self.lookup() == "*":
+                self.expect("*")
+                if self.lookup() == "*":
+                    if "**" in stars_seen:
                         self.fail()
-                    self.expect('*')
+                    self.expect("*")
                     star_star = True
                 else:
                     if stars_seen:
@@ -245,21 +245,21 @@ class Parser(object):
                 arg_type = self.parse_type()
                 if star_star:
                     arg_types.append(Argument(arg_type, ARG_STARSTAR))
-                    stars_seen.add('**')
+                    stars_seen.add("**")
                 else:
                     arg_types.append(Argument(arg_type, ARG_STAR))
-                    stars_seen.add('*')
+                    stars_seen.add("*")
             else:
                 if stars_seen:
                     self.fail()
                 arg_type = self.parse_type()
                 arg_types.append(Argument(arg_type, ARG_POS))
-            if self.lookup() == ',':
-                self.expect(',')
-            elif self.lookup() == ')':
+            if self.lookup() == ",":
+                self.expect(",")
+            elif self.lookup() == ")":
                 break
-        self.expect(')')
-        self.expect('->')
+        self.expect(")")
+        self.expect("->")
         ret_type = self.parse_type()
         if not isinstance(self.next(), End):
             self.fail()
@@ -268,12 +268,12 @@ class Parser(object):
     def parse_type_list(self):
         # type: () -> List[AbstractType]
         types = []
-        while self.lookup() not in (')', ']'):
+        while self.lookup() not in (")", "]"):
             typ = self.parse_type()
             types.append(typ)
-            if self.lookup() == ',':
-                self.expect(',')
-            elif self.lookup() not in (')', ']'):
+            if self.lookup() == ",":
+                self.expect(",")
+            elif self.lookup() not in (")", "]"):
                 self.fail()
         return types
 
@@ -282,19 +282,19 @@ class Parser(object):
         t = self.next()
         if not isinstance(t, DottedName):
             self.fail()
-        if t.text == 'Any':
+        if t.text == "Any":
             return AnyType()
-        elif t.text == 'mypy_extensions.NoReturn':
+        elif t.text == "mypy_extensions.NoReturn":
             return NoReturnType()
-        elif t.text == 'Tuple':
-            self.expect('[')
+        elif t.text == "Tuple":
+            self.expect("[")
             args = self.parse_type_list()
-            self.expect(']')
+            self.expect("]")
             return TupleType(args)
-        elif t.text == 'Union':
-            self.expect('[')
+        elif t.text == "Union":
+            self.expect("[")
             items = self.parse_type_list()
-            self.expect(']')
+            self.expect("]")
             if len(items) == 1:
                 return items[0]
             elif len(items) == 0:
@@ -302,12 +302,12 @@ class Parser(object):
             else:
                 return UnionType(items)
         else:
-            if self.lookup() == '[':
-                self.expect('[')
+            if self.lookup() == "[":
+                self.expect("[")
                 args = self.parse_type_list()
-                self.expect(']')
-                if t.text == 'Optional' and len(args) == 1:
-                    return UnionType([args[0], ClassType('None')])
+                self.expect("]")
+                if t.text == "Optional" and len(args) == 1:
+                    return UnionType([args[0], ClassType("None")])
                 return ClassType(t.text, args)
             else:
                 return ClassType(t.text)
@@ -336,6 +336,6 @@ class Parser(object):
 def encode(s):
     # type: (Text) -> str
     if PY2:
-        return s.encode('ascii')
+        return s.encode("ascii")
     else:
         return s

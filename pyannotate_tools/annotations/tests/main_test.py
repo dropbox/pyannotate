@@ -3,12 +3,10 @@ import os
 import tempfile
 import textwrap
 import unittest
-
 from typing import Iterator
 
 from pyannotate_tools.annotations.infer import InferError
-from pyannotate_tools.annotations.main import (generate_annotations_json,
-                                               generate_annotations_json_string)
+from pyannotate_tools.annotations.main import generate_annotations_json, generate_annotations_json_string
 
 
 class TestMain(unittest.TestCase):
@@ -33,8 +31,9 @@ class TestMain(unittest.TestCase):
             with open(target_path) as target:
                 actual = target.read()
 
-        actual = actual.replace(' \n', '\n')
-        expected = textwrap.dedent("""\
+        actual = actual.replace(" \n", "\n")
+        expected = textwrap.dedent(
+            """\
             [
                 {
                     "func_name": "my_function",
@@ -49,7 +48,8 @@ class TestMain(unittest.TestCase):
                         "return_type": "None"
                     }
                 }
-            ]""")
+            ]"""
+        )
         assert actual == expected
 
     def test_ambiguous_kind(self):
@@ -70,11 +70,13 @@ class TestMain(unittest.TestCase):
         """
         with self.assertRaises(InferError) as e:
             with self.temporary_json_file(data) as source_path:
-                generate_annotations_json(source_path, '/dummy')
-        assert str(e.exception) == textwrap.dedent("""\
+                generate_annotations_json(source_path, "/dummy")
+        assert str(e.exception) == textwrap.dedent(
+            """\
             Ambiguous argument kinds:
             (List[int], str) -> None
-            (List[int], *str) -> None""")
+            (List[int], *str) -> None"""
+        )
 
     def test_generate_to_memory(self):
         # type: () -> None
@@ -98,14 +100,8 @@ class TestMain(unittest.TestCase):
                 "path": "pkg/thing.py",
                 "line": 422,
                 "func_name": "my_function",
-                "signature": {
-                    "arg_types": [
-                        "List[int]",
-                        "str"
-                    ],
-                    "return_type": "None"
-                },
-                "samples": 3
+                "signature": {"arg_types": ["List[int]", "str"], "return_type": "None"},
+                "samples": 3,
             }
         ]
 
@@ -144,14 +140,8 @@ class TestMain(unittest.TestCase):
                 "path": "pkg/thing.py",
                 "line": 9000,
                 "func_name": "simple_function",
-                "signature": {
-                    "arg_types": [
-                        "int",
-                        "str"
-                    ],
-                    "return_type": "None"
-                },
-                "samples": 3
+                "signature": {"arg_types": ["int", "str"], "return_type": "None"},
+                "samples": 3,
             }
         ]
 
@@ -160,7 +150,7 @@ class TestMain(unittest.TestCase):
         # type: (str) -> Iterator[str]
         source = None
         try:
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as source:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as source:
                 source.write(data)
             yield source.name
         finally:
@@ -172,7 +162,7 @@ class TestMain(unittest.TestCase):
         # type: () -> Iterator[str]
         target = None
         try:
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as target:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as target:
                 pass
             yield target.name
         finally:
