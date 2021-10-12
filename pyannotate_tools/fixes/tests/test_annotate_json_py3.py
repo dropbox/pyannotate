@@ -6,7 +6,11 @@ import os
 import tempfile
 import unittest
 import sys
-from mock import patch
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch  # type: ignore
 
 from lib2to3.tests.test_fixers import FixerTestCase
 
