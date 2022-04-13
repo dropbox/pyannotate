@@ -5,7 +5,7 @@ This transforms e.g.
   def foo(self, bar, baz=12):
       return bar + baz
 
-into a type annoted version:
+into a type annotated version:
 
 	  def foo(self, bar, baz=12):
 	      # type: (Any, int) -> Any            # noqa: F821
