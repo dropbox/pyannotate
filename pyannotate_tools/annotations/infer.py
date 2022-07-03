@@ -100,7 +100,7 @@ def simplify_types(types):
     items = [simplify_recursive(item) for item in items]
     items = merge_items(items)
     items = dedupe_types(items)
-    # We have to remove reundant items after everything has been simplified and
+    # We have to remove redundant items after everything has been simplified and
     # merged as this simplification may be what makes items redundant.
     items = remove_redundant_items(items)
     if len(items) > 3:
