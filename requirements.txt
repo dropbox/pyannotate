@@ -1,4 +1,4 @@
-mypy_extensions>=0.3.0
+mypy_extensions>=1.1.0
 pytest>=3.3.0
 setuptools>=28.8.0
 six>=1.11.0
